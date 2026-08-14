@@ -1,8 +1,8 @@
-import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
+import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
+import 'package:cultura_club/features/coach/presentation/screens/category_players_screen.dart';
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../evaluation/presentation/screens/evaluation_form_screen.dart';
 
 class CoachDashboardScreen extends ConsumerWidget {
   final UserEntity user;
@@ -11,46 +11,41 @@ class CoachDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Escuchamos el estado de la lista de jugadores (AsyncValue)
-    final rosterState = ref.watch(rosterControllerProvider);
+    // Escuchamos el estado de las categorías del coach
+    final categoriesState = ref.watch(coachCategoriesControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Plantel de ${user.fullName}'),
+        title: const Text('Mis Categorías'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
       ),
       // Manejamos los 3 estados: cargando, error, o datos listos
-      body: rosterState.when(
+      body: categoriesState.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.red)),
         error: (error, stack) => Center(
           child: Text(
-            'Error al cargar jugadores: $error',
+            'Error al cargar categorías: $error',
             style: const TextStyle(color: Colors.red),
           ),
         ),
-        data: (players) {
-          if (players.isEmpty) {
+        data: (categories) {
+          if (categories.isEmpty) {
             return const Center(
               child: Text(
-                'No tenés jugadores asignados a tu categoría aún.',
+                'No tenés categorías asignadas.',
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             );
           }
 
-          // Dibujamos la lista si hay jugadores
+          // Dibujamos la lista de categorías
           return ListView.builder(
             padding: const EdgeInsets.all(8.0),
-            itemCount: players.length,
+            itemCount: categories.length,
             itemBuilder: (context, index) {
-              final player = players[index];
-
-              // Convertimos la lista de ENUMs a un string legible (Ej: "MCO, DC")
-              final posicionesText = player.posiciones
-                  .map((p) => p.name.toUpperCase())
-                  .join(', ');
+              final category = categories[index];
 
               return Card(
                 elevation: 2,
@@ -59,42 +54,29 @@ class CoachDashboardScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
+                  contentPadding: const EdgeInsets.all(16),
                   leading: CircleAvatar(
-                    radius: 25,
+                    radius: 30,
                     backgroundColor: Colors.red[50],
-                    child: Icon(Icons.person, color: Colors.red[900], size: 30),
+                    child: Icon(Icons.groups, color: Colors.red[900], size: 32),
                   ),
                   title: Text(
-                    player.fullName,
+                    category.nombre,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Posiciones: $posicionesText'),
-                        Text(
-                          'Pierna: ${player.piernaHabil.name.toUpperCase()}',
-                        ),
-                      ],
+                      fontSize: 18,
                     ),
                   ),
                   trailing: Icon(
-                    Icons.analytics_outlined,
+                    Icons.arrow_forward_ios,
                     color: Colors.red[900],
                   ),
-                  // ¡Acá conectamos con el formulario que hicimos recién!
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => EvaluationFormScreen(
-                          playerId: player.userId,
-                          playerName: player.fullName,
+                        builder: (context) => CategoryPlayersScreen(
+                          categoryId: category.id,
+                          categoryName: category.nombre,
                         ),
                       ),
                     );

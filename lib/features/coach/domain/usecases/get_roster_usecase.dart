@@ -7,7 +7,7 @@ class GetRosterUseCase {
   final CoachRepository repository;
   GetRosterUseCase(this.repository);
 
-  Future<Either<Failure, List<PlayerProfileEntity>>> call(String coachId) {
-    return repository.getRoster(coachId);
+  Future<Either<Failure, List<PlayerProfileEntity>>> call(String categoryId) {
+    return repository.getRosterByCategory(categoryId);
   }
 }

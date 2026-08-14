@@ -99,6 +99,54 @@ final class CoachRepositoryProvider
 
 String _$coachRepositoryHash() => r'cfbe2aa52f136a37e0b491e4f2fbdfdfed78adda';
 
+@ProviderFor(getCoachCategoriesUseCase)
+final getCoachCategoriesUseCaseProvider = GetCoachCategoriesUseCaseProvider._();
+
+final class GetCoachCategoriesUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetCoachCategoriesUseCase,
+          GetCoachCategoriesUseCase,
+          GetCoachCategoriesUseCase
+        >
+    with $Provider<GetCoachCategoriesUseCase> {
+  GetCoachCategoriesUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getCoachCategoriesUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getCoachCategoriesUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetCoachCategoriesUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetCoachCategoriesUseCase create(Ref ref) {
+    return getCoachCategoriesUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetCoachCategoriesUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetCoachCategoriesUseCase>(value),
+    );
+  }
+}
+
+String _$getCoachCategoriesUseCaseHash() =>
+    r'a07ce2bc1ea48fcfd323f4aa264ef1c9520fa8f2';
+
 @ProviderFor(getRosterUseCase)
 final getRosterUseCaseProvider = GetRosterUseCaseProvider._();
 

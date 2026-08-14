@@ -23,7 +23,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user = ref.watch(userSessionProvider).value;
 
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.red)));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.red)),
+      );
     }
 
     // 2. Determinamos si es entrenador para armar la UI dinámica
@@ -32,14 +34,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // 3. Definimos las pantallas del BottomNav
     final List<Widget> screens = [
       TabInicioGenerico(user: user),
-      isCoach ? CoachDashboardScreen(user: user) : _PlayerDashboardScreen(user: user),
+      isCoach
+          ? CoachDashboardScreen(user: user)
+          : _PlayerDashboardScreen(user: user),
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -56,7 +57,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(isCoach ? Icons.sports : Icons.bar_chart),
-            label: isCoach ? 'Mi Plantel' : 'Mis Métricas',
+            label: isCoach ? 'Categorías' : 'Mis Métricas',
           ),
         ],
       ),

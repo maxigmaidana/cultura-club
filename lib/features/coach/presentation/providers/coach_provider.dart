@@ -3,6 +3,7 @@ import 'package:cultura_club/features/coach/data/repositories/coach_repository_i
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/providers/supabase_provider.dart';
 import '../../domain/repositories/coach_repository.dart';
+import '../../domain/usecases/get_coach_categories_usecase.dart';
 import '../../domain/usecases/get_roster_usecase.dart';
 
 part 'coach_provider.g.dart';
@@ -15,6 +16,11 @@ CoachRemoteDataSource coachRemoteDataSource(Ref ref) {
 @riverpod
 CoachRepository coachRepository(Ref ref) {
   return CoachRepositoryImpl(ref.watch(coachRemoteDataSourceProvider));
+}
+
+@riverpod
+GetCoachCategoriesUseCase getCoachCategoriesUseCase(Ref ref) {
+  return GetCoachCategoriesUseCase(ref.watch(coachRepositoryProvider));
 }
 
 @riverpod
