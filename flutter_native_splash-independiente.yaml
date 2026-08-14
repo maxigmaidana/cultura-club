@@ -1,0 +1,9 @@
+flutter_native_splash:
+  # El color de fondo (podés poner el rojo exacto del club acá)
+  color: "#E2001A"
+  # La ruta a tu imagen del escudo
+  image: assets/independiente/independiente_logo.png
+  # Para que el Android 12+ lo tome bien
+  android_12:
+    color: "#E2001A"
+    image: assets/independiente/independiente_logo.png

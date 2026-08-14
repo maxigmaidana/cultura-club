@@ -1,0 +1,7 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/independiente/independiente_logo.png"
+  # Opcional: Si querés un ícono adaptativo en Android (para que se vea redondo/cuadrado según el celu)
+  # adaptive_icon_background: "#E2001A"
+  # adaptive_icon_foreground: "assets/independiente/independiente_logo.png"
