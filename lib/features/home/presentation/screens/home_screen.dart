@@ -1,9 +1,9 @@
 import 'package:cultura_club/features/home/presentation/widgets/tab_inicio_generico.dart';
-import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../coach/presentation/screens/coach_dashboard_screen.dart'; // Asegurate de que esta ruta sea correcta
+import '../../../coach/presentation/screens/coach_dashboard_screen.dart';
+import '../../../evaluation/presentation/screens/player_dashboard_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -36,7 +36,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       TabInicioGenerico(user: user),
       isCoach
           ? CoachDashboardScreen(user: user)
-          : _PlayerDashboardScreen(user: user),
+          : PlayerDashboardScreen(user: user),
     ];
 
     return Scaffold(
@@ -60,29 +60,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: isCoach ? 'Categorías' : 'Mis Métricas',
           ),
         ],
-      ),
-    );
-  }
-}
-
-// --- TAB 2 (Jugador): Placeholder temporal ---
-class _PlayerDashboardScreen extends StatelessWidget {
-  final UserEntity user;
-  const _PlayerDashboardScreen({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Estadísticas'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text(
-          'Acá irán los gráficos de tu rendimiento',
-          style: TextStyle(fontSize: 16),
-        ),
       ),
     );
   }

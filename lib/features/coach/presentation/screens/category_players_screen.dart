@@ -98,6 +98,7 @@ class CategoryPlayersScreen extends ConsumerWidget {
                         builder: (context) => EvaluationFormScreen(
                           playerId: player.userId,
                           playerName: player.fullName,
+                          categoryId: categoryId,
                         ),
                       ),
                     );

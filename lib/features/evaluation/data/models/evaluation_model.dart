@@ -4,6 +4,7 @@ class EvaluationModel extends EvaluationEntity {
   EvaluationModel({
     super.id,
     required super.jugadorId,
+    required super.categoriaId,
     required super.evaluadorId,
     required super.fechaEvaluacion,
     required super.velocidad,
@@ -21,6 +22,7 @@ class EvaluationModel extends EvaluationEntity {
     return {
       if (id != null) 'id': id,
       'jugador_id': jugadorId,
+      'categoria_id': categoriaId,
       'evaluador_id': evaluadorId,
       // Formateamos la fecha para que Postgres 'date' la entienda (YYYY-MM-DD)
       'fecha_evaluacion': fechaEvaluacion.toIso8601String().split('T')[0],

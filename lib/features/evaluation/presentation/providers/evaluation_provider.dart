@@ -3,6 +3,8 @@ import 'package:cultura_club/features/evaluation/data/repository/evaluation_repo
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/providers/supabase_provider.dart';
 import '../../domain/repositories/evaluation_repository.dart';
+import '../../domain/usecases/get_all_player_stats_usecase.dart';
+import '../../domain/usecases/get_player_stats_usecase.dart';
 import '../../domain/usecases/save_evaluation_usecase.dart';
 
 part 'evaluation_provider.g.dart';
@@ -14,7 +16,19 @@ EvaluationRemoteDataSource evaluationRemoteDataSource(Ref ref) {
 
 @riverpod
 EvaluationRepository evaluationRepository(Ref ref) {
-  return EvaluationRepositoryImpl(ref.watch(evaluationRemoteDataSourceProvider));
+  return EvaluationRepositoryImpl(
+    ref.watch(evaluationRemoteDataSourceProvider),
+  );
+}
+
+@riverpod
+GetPlayerStatsUseCase getPlayerStatsUseCase(Ref ref) {
+  return GetPlayerStatsUseCase(ref.watch(evaluationRepositoryProvider));
+}
+
+@riverpod
+GetAllPlayerStatsUseCase getAllPlayerStatsUseCase(Ref ref) {
+  return GetAllPlayerStatsUseCase(ref.watch(evaluationRepositoryProvider));
 }
 
 @riverpod
