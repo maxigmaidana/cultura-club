@@ -5,6 +5,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/providers/supabase_provider.dart';
 import '../../domain/usecases/get_datebook_by_category_usecase.dart';
 import '../../domain/usecases/respond_to_citation_usecase.dart';
+import '../../domain/usecases/create_activity_usecase.dart';
+import '../../domain/usecases/update_activity_usecase.dart';
+import '../../domain/usecases/get_activities_for_player_usecase.dart';
 
 part 'datebook_providers.g.dart';
 
@@ -30,4 +33,22 @@ GetDatebookByCategoryUseCase getActivitiesByCategoryUseCase(Ref ref) {
 RespondToCitationUseCase respondToCitationUseCase(Ref ref) {
   final repository = ref.watch(datebookRepositoryProvider);
   return RespondToCitationUseCase(repository);
+}
+
+@riverpod
+CreateActivityUseCase createActivityUseCase(Ref ref) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return CreateActivityUseCase(repository);
+}
+
+@riverpod
+UpdateActivityUseCase updateActivityUseCase(Ref ref) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return UpdateActivityUseCase(repository);
+}
+
+@riverpod
+GetActivitiesForPlayerUseCase getActivitiesForPlayerUseCase(Ref ref) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return GetActivitiesForPlayerUseCase(repository);
 }

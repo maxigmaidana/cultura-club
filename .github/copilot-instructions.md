@@ -38,7 +38,7 @@ New features go in `lib/features/feature_name/` and are strictly divided into:
 
 3. **Presentation**:
    - `providers/`: Static DI (`_providers.dart`).
-   - `controllers/`: Riverpod state controllers (AsyncNotifier/Notifier) using `@riverpod`.
+   - `notifiers/`: Riverpod state notifiers (AsyncNotifier/Notifier) using `@riverpod`.
    - `screens/`: `ConsumerWidget` or `ConsumerStatefulWidget`.
    - `widgets/`: Feature-specific isolated UI components.
 
@@ -47,7 +47,7 @@ Shared modules: enums (`posicion`, `pierna_habil`, `condicion_partido`), themes,
 
 ## Interaction Rules for the AI
 1. **Direct code**: No theoretical explanations. The user is a Tech Lead.
-2. **Zero infrastructure in UI**: Presentation MUST NOT import Supabase directly. Use Controllers and UseCases.
+2. **Zero infrastructure in UI**: Presentation MUST NOT import Supabase directly. Use Notifiers and UseCases.
 3. **Structure first**: Provide the file tree first, then exact code blocks ready to copy-paste.
 4. **Concise responses**: No fluff, no long greetings, no repetitive conclusions.
 5. **Typesafe & Null-safe**: Strictly enforce Dart null-safety.

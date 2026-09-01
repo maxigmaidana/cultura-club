@@ -40,4 +40,70 @@ class DatebookRepositoryImpl implements DatebookRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> createActivity({
+    required String categoriaId,
+    required String creadorId,
+    required String tipo,
+    required String titulo,
+    required DateTime fechaHora,
+    String? lugar,
+    String? indicaciones,
+    List<String> jugadorIds = const [],
+  }) async {
+    try {
+      await remoteDataSource.createActivity(
+        categoriaId: categoriaId,
+        creadorId: creadorId,
+        tipo: tipo,
+        titulo: titulo,
+        fechaHora: fechaHora,
+        lugar: lugar,
+        indicaciones: indicaciones,
+        jugadorIds: jugadorIds,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateActivity({
+    required String actividadId,
+    required String tipo,
+    required String titulo,
+    required DateTime fechaHora,
+    String? lugar,
+    String? indicaciones,
+  }) async {
+    try {
+      await remoteDataSource.updateActivity(
+        actividadId: actividadId,
+        tipo: tipo,
+        titulo: titulo,
+        fechaHora: fechaHora,
+        lugar: lugar,
+        indicaciones: indicaciones,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ActivityEntity>>> getActivitiesForPlayer(
+    String jugadorId,
+  ) async {
+    try {
+      final activities = await remoteDataSource.getActivitiesForPlayer(
+        jugadorId,
+      );
+      return Right(activities);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

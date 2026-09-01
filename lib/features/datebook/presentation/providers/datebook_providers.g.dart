@@ -201,3 +201,150 @@ final class RespondToCitationUseCaseProvider
 
 String _$respondToCitationUseCaseHash() =>
     r'1906ddf30624478402dbc44542f93368992077c2';
+
+@ProviderFor(createActivityUseCase)
+final createActivityUseCaseProvider = CreateActivityUseCaseProvider._();
+
+final class CreateActivityUseCaseProvider
+    extends
+        $FunctionalProvider<
+          CreateActivityUseCase,
+          CreateActivityUseCase,
+          CreateActivityUseCase
+        >
+    with $Provider<CreateActivityUseCase> {
+  CreateActivityUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'createActivityUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$createActivityUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<CreateActivityUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CreateActivityUseCase create(Ref ref) {
+    return createActivityUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CreateActivityUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CreateActivityUseCase>(value),
+    );
+  }
+}
+
+String _$createActivityUseCaseHash() =>
+    r'f6e40cf2c845136fb29ed2f239f1b25a024aa461';
+
+@ProviderFor(updateActivityUseCase)
+final updateActivityUseCaseProvider = UpdateActivityUseCaseProvider._();
+
+final class UpdateActivityUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateActivityUseCase,
+          UpdateActivityUseCase,
+          UpdateActivityUseCase
+        >
+    with $Provider<UpdateActivityUseCase> {
+  UpdateActivityUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateActivityUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateActivityUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateActivityUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateActivityUseCase create(Ref ref) {
+    return updateActivityUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateActivityUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateActivityUseCase>(value),
+    );
+  }
+}
+
+String _$updateActivityUseCaseHash() =>
+    r'de0ac78cd4519ef8e08dd292e369cb0fcdae48ba';
+
+@ProviderFor(getActivitiesForPlayerUseCase)
+final getActivitiesForPlayerUseCaseProvider =
+    GetActivitiesForPlayerUseCaseProvider._();
+
+final class GetActivitiesForPlayerUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetActivitiesForPlayerUseCase,
+          GetActivitiesForPlayerUseCase,
+          GetActivitiesForPlayerUseCase
+        >
+    with $Provider<GetActivitiesForPlayerUseCase> {
+  GetActivitiesForPlayerUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getActivitiesForPlayerUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getActivitiesForPlayerUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetActivitiesForPlayerUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetActivitiesForPlayerUseCase create(Ref ref) {
+    return getActivitiesForPlayerUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetActivitiesForPlayerUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetActivitiesForPlayerUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$getActivitiesForPlayerUseCaseHash() =>
+    r'2076f6e5be2e4d7256998e519ff77a1c5cc1e9d0';

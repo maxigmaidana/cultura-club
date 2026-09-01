@@ -3,6 +3,7 @@ import 'package:cultura_club/features/coach/presentation/screens/category_player
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class CoachDashboardScreen extends ConsumerWidget {
   final UserEntity user;
@@ -72,13 +73,9 @@ class CoachDashboardScreen extends ConsumerWidget {
                     color: Colors.red[900],
                   ),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => CategoryPlayersScreen(
-                          categoryId: category.id,
-                          categoryName: category.nombre,
-                        ),
-                      ),
+                    GoRouter.of(context).push(
+                      CategoryPlayersScreen.buildPath(category.id),
+                      extra: category.nombre,
                     );
                   },
                 ),

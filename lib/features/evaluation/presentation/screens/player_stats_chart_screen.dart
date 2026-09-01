@@ -7,6 +7,10 @@ class PlayerStatsChartScreen extends StatelessWidget {
 
   const PlayerStatsChartScreen({super.key, required this.stats});
 
+  static const String pathName = '/player/stats-chart/:categoriaId';
+  static String buildPath(String categoriaId) =>
+      '/player/stats-chart/$categoriaId';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

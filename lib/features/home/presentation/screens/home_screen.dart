@@ -1,3 +1,7 @@
+import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/controllers/my_agenda_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/screens/my_agenda_screen.dart';
+import 'package:cultura_club/features/evaluation/presentation/controllers/player_dashboard_controller.dart';
 import 'package:cultura_club/features/home/presentation/widgets/tab_inicio_generico.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
@@ -37,29 +41,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       isCoach
           ? CoachDashboardScreen(user: user)
           : PlayerDashboardScreen(user: user),
+      if (!isCoach) const MyAgendaScreen(),
     ];
 
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        selectedItemColor: Colors.red[900],
-        unselectedItemColor: Colors.grey,
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(isCoach ? Icons.sports : Icons.bar_chart),
-            label: isCoach ? 'Categorías' : 'Mis Métricas',
-          ),
-        ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        if (isCoach) {
+          ref.invalidate(coachCategoriesControllerProvider);
+        } else {
+          ref.invalidate(playerDashboardControllerProvider);
+        }
+        ref.invalidate(myAgendaControllerProvider);
+      },
+      child: Scaffold(
+        body: IndexedStack(index: _currentIndex, children: screens),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          selectedItemColor: Colors.red[900],
+          unselectedItemColor: Colors.grey,
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Inicio',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(isCoach ? Icons.sports : Icons.bar_chart),
+              label: isCoach ? 'Categorías' : 'Mis Métricas',
+            ),
+            if (!isCoach)
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.event_note),
+                label: 'Agenda',
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:cultura_club/features/evaluation/presentation/screens/player_sta
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class PlayerDashboardScreen extends ConsumerWidget {
   final UserEntity user;
@@ -104,11 +105,9 @@ class PlayerDashboardScreen extends ConsumerWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PlayerStatsChartScreen(stats: stats),
-                      ),
+                    GoRouter.of(context).push(
+                      PlayerStatsChartScreen.buildPath(stats.categoriaId),
+                      extra: stats,
                     );
                   },
                   child: Padding(

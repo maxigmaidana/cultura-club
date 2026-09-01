@@ -5,8 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-const String clubName = String.fromEnvironment('CLUB_NAME', defaultValue: 'Cultura Club');
-const String primaryColorHex = String.fromEnvironment('PRIMARY_COLOR', defaultValue: '0xFFE2001A');
+const String clubName = String.fromEnvironment(
+  'CLUB_NAME',
+  defaultValue: 'Cultura Club',
+);
+const String primaryColorHex = String.fromEnvironment(
+  'PRIMARY_COLOR',
+  defaultValue: '0xFFE2001A',
+);
 
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
@@ -20,9 +26,13 @@ class SplashScreen extends ConsumerWidget {
       // Cuando la promesa asíncrona (build) se resuelve:
       if (!next.isLoading) {
         if (next.value != null) {
-          context.go(HomeScreen.pathName); // Hay token válido -> Home
+          GoRouter.of(
+            context,
+          ).go(HomeScreen.pathName); // Hay token válido -> Home
         } else {
-          context.go(LoginScreen.pathName); // No hay token -> Login
+          GoRouter.of(
+            context,
+          ).go(LoginScreen.pathName); // No hay token -> Login
         }
       }
     });
@@ -39,7 +49,11 @@ class SplashScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Text(
               clubName,
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(color: Colors.white),

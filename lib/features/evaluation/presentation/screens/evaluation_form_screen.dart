@@ -3,6 +3,7 @@ import 'package:cultura_club/features/evaluation/presentation/controllers/player
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../domain/entities/evaluation_entity.dart';
 import '../../domain/entities/player_stats_entity.dart';
 
@@ -17,6 +18,11 @@ class EvaluationFormScreen extends ConsumerStatefulWidget {
     required this.playerName,
     required this.categoryId,
   });
+
+  static const String pathName =
+      '/coach/category/:categoryId/evaluate/:playerId';
+  static String buildPath(String categoryId, String playerId) =>
+      '/coach/category/$categoryId/evaluate/$playerId';
 
   @override
   ConsumerState<EvaluationFormScreen> createState() =>
@@ -151,7 +157,7 @@ class _EvaluationFormScreenState extends ConsumerState<EvaluationFormScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.of(context).pop(); // Volvemos a la lista de jugadores
+            GoRouter.of(context).pop(); // Volvemos a la lista de jugadores
           }
         },
       );

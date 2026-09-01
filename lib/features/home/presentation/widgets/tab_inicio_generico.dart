@@ -1,4 +1,9 @@
 import 'package:cultura_club/features/auth/presentation/providers/auth_provider.dart';
+import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
+import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
+import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
+import 'package:cultura_club/features/datebook/presentation/utils/date_formatter.dart';
+import 'package:cultura_club/features/home/presentation/widgets/next_confirmed_activity_card.dart';
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
@@ -29,16 +34,20 @@ class TabInicioGenerico extends ConsumerWidget {
                 (failure) {
                   // Manejo de error si falla el deslogueo
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al cerrar sesión: ${failure.message}')),
+                    SnackBar(
+                      content: Text(
+                        'Error al cerrar sesión: ${failure.message}',
+                      ),
+                    ),
                   );
                 },
                 (_) {
                   // 2. Limpiamos el estado global
                   ref.read(userSessionProvider.notifier).clearUser();
-                  
+
                   // 3. Redirigimos
                   if (context.mounted) {
-                    context.go('/login');
+                    GoRouter.of(context).go('/login');
                   }
                 },
               );
@@ -91,8 +100,102 @@ class TabInicioGenerico extends ConsumerWidget {
               ),
             ),
           ),
+          if (user.role.isCoach) ...[
+            const SizedBox(height: 20),
+            const NextCoachCommitmentCard(),
+          ] else ...[
+            const SizedBox(height: 20),
+            NextConfirmedActivityCard(userId: user.id),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class NextCoachCommitmentCard extends ConsumerWidget {
+  const NextCoachCommitmentCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoriesState = ref.watch(coachCategoriesControllerProvider);
+
+    return categoriesState.when(
+      loading: () => const SizedBox.shrink(),
+      error: (error, stackTrace) => const SizedBox.shrink(),
+      data: (categories) {
+        if (categories.isEmpty) return const SizedBox.shrink();
+
+        final now = DateTime.now();
+        ActivityEntity? next;
+
+        for (final category in categories) {
+          final activitiesState = ref.watch(datebookProvider(category.id));
+          final activities = activitiesState.asData?.value ?? const <ActivityEntity>[];
+
+          for (final activity in activities) {
+            if (!activity.fechaHora.isAfter(now)) continue;
+            if (next == null || activity.fechaHora.isBefore(next.fechaHora)) {
+              next = activity;
+            }
+          }
+        }
+
+        if (next == null) return const SizedBox.shrink();
+
+        final activity = next;
+
+        return Card(
+          color: Colors.orange[50],
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.orange.shade200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Icon(Icons.event, color: Colors.orange[800], size: 40),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tu próximo compromiso',
+                        style: TextStyle(
+                          color: Colors.orange[800],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        activity.titulo,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatActivityDate(activity.fechaHora),
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                      if (activity.lugar != null && activity.lugar!.isNotEmpty)
+                        Text(
+                          activity.lugar!,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

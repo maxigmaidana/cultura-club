@@ -11,4 +11,25 @@ abstract class DatebookRepository {
     String jugadorId,
     String estadoRespuesta,
   );
+  Future<Either<Failure, void>> createActivity({
+    required String categoriaId,
+    required String creadorId,
+    required String tipo,
+    required String titulo,
+    required DateTime fechaHora,
+    String? lugar,
+    String? indicaciones,
+    List<String> jugadorIds = const [],
+  });
+  Future<Either<Failure, void>> updateActivity({
+    required String actividadId,
+    required String tipo,
+    required String titulo,
+    required DateTime fechaHora,
+    String? lugar,
+    String? indicaciones,
+  });
+  Future<Either<Failure, List<ActivityEntity>>> getActivitiesForPlayer(
+    String jugadorId,
+  );
 }

@@ -1,6 +1,9 @@
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/screens/create_activity_screen.dart';
+import 'package:cultura_club/features/datebook/presentation/screens/datebook_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../evaluation/presentation/screens/evaluation_form_screen.dart';
 
 class CategoryPlayersScreen extends ConsumerWidget {
@@ -13,6 +16,9 @@ class CategoryPlayersScreen extends ConsumerWidget {
     required this.categoryName,
   });
 
+  static const String pathName = '/coach/category/:categoryId';
+  static String buildPath(String categoryId) => '/coach/category/$categoryId';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Escuchamos el estado de la lista de jugadores filtrada por categoría
@@ -23,6 +29,15 @@ class CategoryPlayersScreen extends ConsumerWidget {
         title: Text('Plantel - $categoryName'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'Ver actividades programadas',
+            onPressed: () {
+              GoRouter.of(context).push(DatebookScreen.buildPath(categoryId));
+            },
+          ),
+        ],
       ),
       // Manejamos los 3 estados: cargando, error, o datos listos
       body: rosterState.when(
@@ -93,20 +108,24 @@ class CategoryPlayersScreen extends ConsumerWidget {
                     color: Colors.red[900],
                   ),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => EvaluationFormScreen(
-                          playerId: player.userId,
-                          playerName: player.fullName,
-                          categoryId: categoryId,
-                        ),
-                      ),
+                    GoRouter.of(context).push(
+                      EvaluationFormScreen.buildPath(categoryId, player.userId),
+                      extra: player.fullName,
                     );
                   },
                 ),
               );
             },
           );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.red[900],
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.event_note),
+        label: const Text('Agendar'),
+        onPressed: () {
+          GoRouter.of(context).push(CreateActivityScreen.buildPath(categoryId));
         },
       ),
     );
