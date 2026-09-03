@@ -1,4 +1,6 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
+import 'package:cultura_club/core/theme/widgets/app_button.dart';
+import 'package:cultura_club/core/theme/widgets/app_card.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/citation_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/utils/date_formatter.dart';
@@ -69,91 +71,81 @@ class ActivityDetailScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalle de Actividad'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Detalle')),
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.zero,
             children: [
-              Text(
-                ActivityTipo.fromString(activity.tipo).label,
-                style: TextStyle(
-                  color: Colors.red[900],
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                activity.titulo,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              _InfoRow(
-                icon: Icons.calendar_today,
-                label: formatActivityDate(activity.fechaHora),
-              ),
-              if (activity.lugar != null && activity.lugar!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _InfoRow(icon: Icons.place, label: activity.lugar!),
-              ],
-              if (activity.indicaciones != null &&
-                  activity.indicaciones!.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                const Text(
-                  'Indicaciones',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  activity.indicaciones!,
-                  style: const TextStyle(color: Colors.black87),
-                ),
-              ],
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: isSubmitting
-                          ? null
-                          : () => _respond(context, ref, 'confirma'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+              _ActivityHeroImage(activity: activity),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.titulo,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                      icon: const Icon(Icons.check),
-                      label: const Text('Confirmar Asistencia'),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isSubmitting
-                          ? null
-                          : () => _respond(context, ref, 'no_asiste'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red[900],
-                        side: BorderSide(color: Colors.red[900]!),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    const SizedBox(height: 20),
+                    AppCard(
+                      child: Column(
+                        children: [
+                          _InfoRow(
+                            icon: Icons.calendar_today,
+                            label: formatActivityDate(activity.fechaHora),
+                          ),
+                          if (activity.lugar != null &&
+                              activity.lugar!.isNotEmpty) ...[
+                            const Divider(height: 20),
+                            _InfoRow(icon: Icons.place, label: activity.lugar!),
+                          ],
+                        ],
                       ),
-                      icon: const Icon(Icons.close),
-                      label: const Text('No Asistir'),
                     ),
-                  ),
-                ],
+                    if (activity.indicaciones != null &&
+                        activity.indicaciones!.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Indicaciones',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        activity.indicaciones!,
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      child: AppButton(
+                        variant: AppButtonVariant.success,
+                        icon: Icons.check,
+                        label: 'Confirmar Asistencia',
+                        isLoading: isSubmitting,
+                        onPressed: () => _respond(context, ref, 'confirma'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: AppButton(
+                        variant: AppButtonVariant.danger,
+                        icon: Icons.close,
+                        label: 'No Asistir',
+                        isLoading: isSubmitting,
+                        onPressed: () => _respond(context, ref, 'no_asiste'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -170,6 +162,76 @@ class ActivityDetailScreen extends ConsumerWidget {
   }
 }
 
+class _ActivityHeroImage extends StatelessWidget {
+  final ActivityEntity activity;
+
+  const _ActivityHeroImage({required this.activity});
+
+  IconData get _placeholderIcon {
+    switch (ActivityTipo.fromString(activity.tipo)) {
+      case ActivityTipo.partido:
+        return Icons.sports_soccer;
+      case ActivityTipo.evento:
+        return Icons.event;
+      case ActivityTipo.entrenamiento:
+        return Icons.fitness_center;
+    }
+  }
+
+  Widget _placeholder(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      color: scheme.primaryContainer,
+      alignment: Alignment.center,
+      child: Icon(_placeholderIcon, size: 56, color: scheme.onPrimaryContainer),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final imagenUrl = activity.imagenUrl;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+      child: SizedBox(
+        height: 200,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            imagenUrl == null || imagenUrl.isEmpty
+                ? _placeholder(context)
+                : Image.network(
+                    imagenUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _placeholder(context),
+                  ),
+            Positioned(
+              left: 12,
+              bottom: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  ActivityTipo.fromString(activity.tipo).label,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -180,7 +242,7 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Colors.red[900], size: 20),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 20),
         const SizedBox(width: 8),
         Expanded(child: Text(label, style: const TextStyle(fontSize: 15))),
       ],

@@ -17,6 +17,7 @@ abstract class DatebookRemoteDataSource {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
     List<String> jugadorIds = const [],
   });
 
@@ -27,6 +28,7 @@ abstract class DatebookRemoteDataSource {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
   });
 
   Future<List<ActivityModel>> getActivitiesForPlayer(String jugadorId);
@@ -89,6 +91,7 @@ class DatebookRemoteDataSourceImpl implements DatebookRemoteDataSource {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
     List<String> jugadorIds = const [],
   }) async {
     try {
@@ -103,6 +106,7 @@ class DatebookRemoteDataSourceImpl implements DatebookRemoteDataSource {
             'fecha_hora': fechaHora.toUtc().toIso8601String(),
             'lugar': lugar,
             'indicaciones': indicaciones,
+            'imagen_url': imagenUrl,
             'estado': 'publicada',
           })
           .select('id')
@@ -143,6 +147,7 @@ class DatebookRemoteDataSourceImpl implements DatebookRemoteDataSource {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
   }) async {
     try {
       log('📡 Updating activity: $actividadId');
@@ -154,6 +159,7 @@ class DatebookRemoteDataSourceImpl implements DatebookRemoteDataSource {
             'fecha_hora': fechaHora.toUtc().toIso8601String(),
             'lugar': lugar,
             'indicaciones': indicaciones,
+            'imagen_url': imagenUrl,
           })
           .eq('id', actividadId);
       log('✅ Activity updated.');

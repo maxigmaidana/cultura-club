@@ -1,4 +1,8 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
+import 'package:cultura_club/core/theme/widgets/app_card.dart';
+import 'package:cultura_club/core/theme/widgets/app_header_bar.dart';
+import 'package:cultura_club/core/theme/widgets/app_status_badge.dart';
+import 'package:cultura_club/features/auth/presentation/providers/auth_provider.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/my_agenda_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/activity_detail_screen.dart';
@@ -11,16 +15,33 @@ import 'package:go_router/go_router.dart';
 class MyAgendaScreen extends ConsumerWidget {
   const MyAgendaScreen({super.key});
 
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final result = await ref.read(signOutUseCaseProvider)();
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cerrar sesión: ${failure.message}')),
+        );
+      },
+      (_) {
+        ref.read(userSessionProvider.notifier).clearUser();
+        if (context.mounted) GoRouter.of(context).go('/login');
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final agendaState = ref.watch(myAgendaControllerProvider);
-    final currentUserId = ref.watch(userSessionProvider).value?.id;
+    final user = ref.watch(userSessionProvider).value;
+    final currentUserId = user?.id;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi Agenda'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
+      appBar: AppHeaderBar(
+        title: 'Mi Agenda',
+        avatarInitial: user == null ? '?' : user.fullName[0].toUpperCase(),
+        showLogout: true,
+        onLogout: () => _signOut(context, ref),
       ),
       body: RefreshIndicator(
         color: Colors.red[900],
@@ -115,65 +136,66 @@ class _AgendaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      activity.titulo,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Chip(
-                    label: Text(
-                      estado.label,
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
-                    ),
-                    backgroundColor: _estadoColor,
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    formatActivityDate(activity.fechaHora),
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-              if (activity.lugar != null && activity.lugar!.isNotEmpty) ...[
-                const SizedBox(height: 4),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Row(
                   children: [
-                    Icon(Icons.place, size: 16, color: Colors.grey[600]),
+                    Expanded(
+                      child: Text(
+                        activity.titulo,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    AppStatusBadge(label: estado.label, color: _estadoColor),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
                     const SizedBox(width: 6),
                     Text(
-                      activity.lugar!,
+                      formatActivityDate(activity.fechaHora),
                       style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),
+                if (activity.lugar != null &&
+                    activity.lugar!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.place, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 6),
+                      Text(
+                        activity.lugar!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

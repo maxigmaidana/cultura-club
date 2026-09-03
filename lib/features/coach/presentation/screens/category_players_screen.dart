@@ -27,8 +27,6 @@ class CategoryPlayersScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Plantel - $categoryName'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month),

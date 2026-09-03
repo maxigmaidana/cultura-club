@@ -46,8 +46,6 @@ class ActivityDashboardScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(currentActivity.titulo),
-          backgroundColor: Colors.red[900],
-          foregroundColor: Colors.white,
           actions: [
             IconButton(
               icon: const Icon(Icons.edit),
@@ -64,9 +62,6 @@ class ActivityDashboardScreen extends ConsumerWidget {
             ),
           ],
           bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
             tabs: [
               Tab(text: 'Confirmados'),
               Tab(text: 'Pendientes'),
@@ -79,14 +74,14 @@ class ActivityDashboardScreen extends ConsumerWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16.0),
-              color: Colors.red[50],
+              color: Theme.of(context).colorScheme.primaryContainer,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     ActivityTipo.fromString(currentActivity.tipo).label,
                     style: TextStyle(
-                      color: Colors.red[900],
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -182,10 +177,11 @@ class _PlayerList extends StatelessWidget {
             ? null
             : player.posiciones.map((p) => p.name.toUpperCase()).join(', ');
 
+        final scheme = Theme.of(context).colorScheme;
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: Colors.red[50],
-            child: Icon(Icons.person, color: Colors.red[900]),
+            backgroundColor: scheme.primaryContainer,
+            child: Icon(Icons.person, color: scheme.onPrimaryContainer),
           ),
           title: Text(name),
           subtitle: posiciones != null ? Text(posiciones) : null,

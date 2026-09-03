@@ -18,8 +18,6 @@ class CoachDashboardScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Categorías'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
       ),
       // Manejamos los 3 estados: cargando, error, o datos listos
       body: categoriesState.when(

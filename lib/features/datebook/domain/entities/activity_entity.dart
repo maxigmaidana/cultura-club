@@ -9,6 +9,7 @@ class ActivityEntity {
   final DateTime fechaHora;
   final String? lugar;
   final String? indicaciones;
+  final String? imagenUrl;
   final String estado;
   final List<CitationEntity> citaciones;
 
@@ -21,6 +22,7 @@ class ActivityEntity {
     required this.fechaHora,
     this.lugar,
     this.indicaciones,
+    this.imagenUrl,
     required this.estado,
     this.citaciones = const [],
   });

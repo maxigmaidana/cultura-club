@@ -15,6 +15,7 @@ class CreateActivityUseCase {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
     List<String> jugadorIds = const [],
   }) {
     return repository.createActivity(
@@ -25,6 +26,7 @@ class CreateActivityUseCase {
       fechaHora: fechaHora,
       lugar: lugar,
       indicaciones: indicaciones,
+      imagenUrl: imagenUrl,
       jugadorIds: jugadorIds,
     );
   }

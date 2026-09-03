@@ -1,6 +1,10 @@
+import 'package:cultura_club/core/theme/widgets/app_card.dart';
+import 'package:cultura_club/core/theme/widgets/app_header_bar.dart';
+import 'package:cultura_club/features/auth/presentation/providers/auth_provider.dart';
 import 'package:cultura_club/features/evaluation/presentation/controllers/player_dashboard_controller.dart';
 import 'package:cultura_club/features/evaluation/presentation/screens/player_stats_chart_screen.dart';
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
+import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,16 +14,32 @@ class PlayerDashboardScreen extends ConsumerWidget {
 
   const PlayerDashboardScreen({super.key, required this.user});
 
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final result = await ref.read(signOutUseCaseProvider)();
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cerrar sesión: ${failure.message}')),
+        );
+      },
+      (_) {
+        ref.read(userSessionProvider.notifier).clearUser();
+        if (context.mounted) GoRouter.of(context).go('/login');
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Escuchamos el estado de las stats del jugador
     final statsState = ref.watch(playerDashboardControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Estadísticas'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
+      appBar: AppHeaderBar(
+        title: 'Mis Métricas',
+        avatarInitial: user.fullName.isEmpty ? '?' : user.fullName[0].toUpperCase(),
+        showLogout: true,
+        onLogout: () => _signOut(context, ref),
       ),
       body: statsState.when(
         loading: () =>
@@ -96,23 +116,20 @@ class PlayerDashboardScreen extends ConsumerWidget {
                       stats.asistencia) /
                   6;
 
-              return Card(
-                elevation: 3,
-                margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () {
-                    GoRouter.of(context).push(
-                      PlayerStatsChartScreen.buildPath(stats.categoriaId),
-                      extra: stats,
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: AppCard(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      GoRouter.of(context).push(
+                        PlayerStatsChartScreen.buildPath(stats.categoriaId),
+                        extra: stats,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -120,12 +137,12 @@ class PlayerDashboardScreen extends ConsumerWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.red[50],
+                                color: Theme.of(context).colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
                                 Icons.groups,
-                                color: Colors.red[900],
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
                                 size: 28,
                               ),
                             ),
@@ -176,6 +193,7 @@ class PlayerDashboardScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+              ),
               );
             },
           );

@@ -1,3 +1,5 @@
+import 'package:cultura_club/core/theme/widgets/app_button.dart';
+import 'package:cultura_club/core/theme/widgets/app_input_field.dart';
 import 'package:cultura_club/features/evaluation/presentation/controllers/evaluation_controller.dart';
 import 'package:cultura_club/features/evaluation/presentation/controllers/player_stats_controller.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
@@ -166,11 +168,7 @@ class _EvaluationFormScreenState extends ConsumerState<EvaluationFormScreen> {
     final evaluationState = ref.watch(evaluationControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Evaluar a ${widget.playerName}'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: Text('Evaluar a ${widget.playerName}')),
       body: statsState.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.red)),
@@ -256,38 +254,20 @@ class _EvaluationFormScreenState extends ConsumerState<EvaluationFormScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextField(
+                      AppInputField(
                         controller: _comentariosController,
                         maxLines: 4,
-                        decoration: InputDecoration(
-                          hintText:
-                              'Ej: Mejoró mucho en la marca, pero falta definición...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                        hintText:
+                            'Ej: Mejoró mucho en la marca, pero falta definición...',
                       ),
                       const SizedBox(height: 32),
 
                       SizedBox(
                         width: double.infinity,
                         height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red[900],
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                        child: AppButton(
+                          label: 'GUARDAR EVALUACIÓN',
                           onPressed: _submit,
-                          child: const Text(
-                            'GUARDAR EVALUACIÓN',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                         ),
                       ),
                       const SizedBox(height: 32),

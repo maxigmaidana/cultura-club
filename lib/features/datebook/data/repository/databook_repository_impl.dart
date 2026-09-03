@@ -50,6 +50,7 @@ class DatebookRepositoryImpl implements DatebookRepository {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
     List<String> jugadorIds = const [],
   }) async {
     try {
@@ -61,6 +62,7 @@ class DatebookRepositoryImpl implements DatebookRepository {
         fechaHora: fechaHora,
         lugar: lugar,
         indicaciones: indicaciones,
+        imagenUrl: imagenUrl,
         jugadorIds: jugadorIds,
       );
       return const Right(null);
@@ -77,6 +79,7 @@ class DatebookRepositoryImpl implements DatebookRepository {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
   }) async {
     try {
       await remoteDataSource.updateActivity(
@@ -86,6 +89,7 @@ class DatebookRepositoryImpl implements DatebookRepository {
         fechaHora: fechaHora,
         lugar: lugar,
         indicaciones: indicaciones,
+        imagenUrl: imagenUrl,
       );
       return const Right(null);
     } catch (e) {

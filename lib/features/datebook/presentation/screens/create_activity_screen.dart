@@ -1,4 +1,7 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
+import 'package:cultura_club/core/theme/widgets/app_button.dart';
+import 'package:cultura_club/core/theme/widgets/app_card.dart';
+import 'package:cultura_club/core/theme/widgets/app_input_field.dart';
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
@@ -34,6 +37,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
   final _tituloController = TextEditingController();
   final _lugarController = TextEditingController();
   final _indicacionesController = TextEditingController();
+  final _imagenUrlController = TextEditingController();
 
   ActivityTipo _tipo = ActivityTipo.entrenamiento;
   DateTime? _fechaHora;
@@ -50,6 +54,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
       _tituloController.text = activity.titulo;
       _lugarController.text = activity.lugar ?? '';
       _indicacionesController.text = activity.indicaciones ?? '';
+      _imagenUrlController.text = activity.imagenUrl ?? '';
       _tipo = ActivityTipo.fromString(activity.tipo);
       _fechaHora = activity.fechaHora;
     }
@@ -60,6 +65,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
     _tituloController.dispose();
     _lugarController.dispose();
     _indicacionesController.dispose();
+    _imagenUrlController.dispose();
     super.dispose();
   }
 
@@ -111,6 +117,9 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
     final indicaciones = _indicacionesController.text.trim().isEmpty
         ? null
         : _indicacionesController.text.trim();
+    final imagenUrl = _imagenUrlController.text.trim().isEmpty
+        ? null
+        : _imagenUrlController.text.trim();
 
     final result = _isEditing
         ? await ref.read(updateActivityUseCaseProvider)(
@@ -120,6 +129,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
             fechaHora: _fechaHora!,
             lugar: lugar,
             indicaciones: indicaciones,
+            imagenUrl: imagenUrl,
           )
         : await ref.read(createActivityUseCaseProvider)(
             categoriaId: widget.categoriaId,
@@ -129,6 +139,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
             fechaHora: _fechaHora!,
             lugar: lugar,
             indicaciones: indicaciones,
+            imagenUrl: imagenUrl,
             jugadorIds: _selectedPlayerIds.toList(),
           );
 
@@ -167,20 +178,15 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Actividad' : 'Nueva Actividad'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20.0),
           children: [
-            TextFormField(
+            AppInputField(
               controller: _tituloController,
-              decoration: const InputDecoration(
-                labelText: 'Título',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Título',
               validator: (value) => (value == null || value.trim().isEmpty)
                   ? 'El título es obligatorio'
                   : null,
@@ -219,21 +225,18 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _lugarController,
-              decoration: const InputDecoration(
-                labelText: 'Lugar',
-                border: OutlineInputBorder(),
-              ),
+            AppInputField(controller: _lugarController, label: 'Lugar'),
+            const SizedBox(height: 16),
+            AppInputField(
+              controller: _indicacionesController,
+              label: 'Indicaciones',
+              maxLines: 3,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _indicacionesController,
-              decoration: const InputDecoration(
-                labelText: 'Indicaciones',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
+            AppInputField(
+              controller: _imagenUrlController,
+              label: 'URL de imagen (opcional)',
+              keyboardType: TextInputType.url,
             ),
             const SizedBox(height: 24),
             if (!_isEditing) ...[
@@ -255,15 +258,11 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
             const SizedBox(height: 32),
             SizedBox(
               height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[900],
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _isSubmitting ? null : _submit,
-                child: _isSubmitting
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(_isEditing ? 'Guardar Cambios' : 'Crear Actividad'),
+              width: double.infinity,
+              child: AppButton(
+                label: _isEditing ? 'Guardar Cambios' : 'Crear Actividad',
+                isLoading: _isSubmitting,
+                onPressed: _submit,
               ),
             ),
           ],
@@ -307,11 +306,8 @@ class _RosterPicker extends ConsumerWidget {
 
         final allSelected = selectedPlayerIds.length == roster.length;
 
-        return Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-          ),
+        return AppCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
               CheckboxListTile(

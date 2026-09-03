@@ -1,3 +1,5 @@
+import 'package:cultura_club/core/theme/widgets/app_button.dart';
+import 'package:cultura_club/core/theme/widgets/app_input_field.dart';
 import 'package:cultura_club/features/auth/presentation/controller/login_controller.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -83,36 +85,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 32),
-                TextField(
+                AppInputField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo electrónico',
-                    border: OutlineInputBorder(),
-                  ),
+                  label: 'Correo electrónico',
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                AppInputField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña',
-                    border: OutlineInputBorder(),
-                  ),
+                  label: 'Contraseña',
                   obscureText: true,
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: isLoading ? null : _onLoginPressed,
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Ingresar', style: TextStyle(fontSize: 16)),
+                  child: AppButton(
+                    label: 'Ingresar',
+                    isLoading: isLoading,
+                    onPressed: _onLoginPressed,
                   ),
                 ),
               ],

@@ -11,6 +11,7 @@ class ActivityModel extends ActivityEntity {
     required super.fechaHora,
     super.lugar,
     super.indicaciones,
+    super.imagenUrl,
     required super.estado,
     super.citaciones,
   });
@@ -26,6 +27,7 @@ class ActivityModel extends ActivityEntity {
       fechaHora: DateTime.parse(json['fecha_hora']),
       lugar: json['lugar'],
       indicaciones: json['indicaciones'],
+      imagenUrl: json['imagen_url'],
       estado: json['estado'],
       citaciones: citacionesList != null
           ? citacionesList.map((e) => CitationModel.fromJson(e)).toList()

@@ -14,6 +14,7 @@ class UpdateActivityUseCase {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
   }) {
     return repository.updateActivity(
       actividadId: actividadId,
@@ -22,6 +23,7 @@ class UpdateActivityUseCase {
       fechaHora: fechaHora,
       lugar: lugar,
       indicaciones: indicaciones,
+      imagenUrl: imagenUrl,
     );
   }
 }

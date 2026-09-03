@@ -1,4 +1,6 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
+import 'package:cultura_club/core/theme/widgets/app_card.dart';
+import 'package:cultura_club/core/theme/widgets/app_status_badge.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/activity_dashboard_screen.dart';
@@ -25,11 +27,7 @@ class DatebookScreen extends ConsumerWidget {
     final isCoach = currentUser?.role.isCoach ?? false;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agenda'),
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Agenda')),
       body: RefreshIndicator(
         color: Colors.red[900],
         onRefresh: () =>
@@ -142,55 +140,53 @@ class _ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(12),
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(_icon, color: scheme.onPrimaryContainer, size: 28),
                 ),
-                child: Icon(_icon, color: Colors.red[900], size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      activity.titulo,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activity.titulo,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatActivityDate(activity.fechaHora),
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        formatActivityDate(activity.fechaHora),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Chip(
-                label: Text(
-                  ActivityEstado.fromString(activity.estado).label,
-                  style: const TextStyle(fontSize: 11, color: Colors.white),
+                AppStatusBadge(
+                  label: ActivityEstado.fromString(activity.estado).label,
+                  color: _estadoColor,
                 ),
-                backgroundColor: _estadoColor,
-                padding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

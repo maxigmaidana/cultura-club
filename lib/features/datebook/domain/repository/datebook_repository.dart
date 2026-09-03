@@ -19,6 +19,7 @@ abstract class DatebookRepository {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
     List<String> jugadorIds = const [],
   });
   Future<Either<Failure, void>> updateActivity({
@@ -28,6 +29,7 @@ abstract class DatebookRepository {
     required DateTime fechaHora,
     String? lugar,
     String? indicaciones,
+    String? imagenUrl,
   });
   Future<Either<Failure, List<ActivityEntity>>> getActivitiesForPlayer(
     String jugadorId,
