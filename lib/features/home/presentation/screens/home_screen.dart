@@ -3,11 +3,11 @@ import 'package:cultura_club/features/datebook/presentation/controllers/my_agend
 import 'package:cultura_club/features/datebook/presentation/screens/my_agenda_screen.dart';
 import 'package:cultura_club/features/evaluation/presentation/controllers/player_dashboard_controller.dart';
 import 'package:cultura_club/features/home/presentation/widgets/tab_inicio_generico.dart';
+import 'package:cultura_club/features/settings/presentation/settings_screen.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../coach/presentation/screens/coach_dashboard_screen.dart';
-import '../../../evaluation/presentation/screens/player_dashboard_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -36,12 +36,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isCoach = user.role.isCoach;
 
     // 3. Definimos las pantallas del BottomNav
+
+    final List<Widget> playerScreens = [
+      TabInicioGenerico(user: user),
+      const MyAgendaScreen(),
+      const SettingsScreen(),
+    ];
     final List<Widget> screens = [
       TabInicioGenerico(user: user),
-      isCoach
-          ? CoachDashboardScreen(user: user)
-          : PlayerDashboardScreen(user: user),
-      if (!isCoach) const MyAgendaScreen(),
+      CoachDashboardScreen(user: user),
+      const SettingsScreen(),
     ];
 
     return RefreshIndicator(
@@ -54,8 +58,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ref.invalidate(myAgendaControllerProvider);
       },
       child: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: screens),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: isCoach ? screens : playerScreens,
+        ),
         bottomNavigationBar: BottomNavigationBar(
+          enableFeedback: false,
+
           currentIndex: _currentIndex,
           onTap: (index) {
             setState(() {
@@ -65,19 +74,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           selectedItemColor: Colors.red[900],
           unselectedItemColor: Colors.grey,
           items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Inicio',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(isCoach ? Icons.sports : Icons.bar_chart),
-              label: isCoach ? 'Categorías' : 'Mis Métricas',
-            ),
+            const BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+            if (isCoach)
+              BottomNavigationBarItem(
+                icon: Icon(isCoach ? Icons.sports : Icons.bar_chart),
+                label: '',
+              ),
             if (!isCoach)
               const BottomNavigationBarItem(
                 icon: Icon(Icons.event_note),
-                label: 'Agenda',
+                label: '',
               ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.settings),
+              label: '',
+            ),
           ],
         ),
       ),

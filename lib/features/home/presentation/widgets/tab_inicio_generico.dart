@@ -3,6 +3,7 @@ import 'package:cultura_club/features/coach/presentation/controller/coach_catego
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
 import 'package:cultura_club/features/datebook/presentation/utils/date_formatter.dart';
+import 'package:cultura_club/features/gamification/presentation/widgets/pending_trivias_section.dart';
 import 'package:cultura_club/features/home/presentation/widgets/next_confirmed_activity_card.dart';
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
@@ -106,6 +107,7 @@ class TabInicioGenerico extends ConsumerWidget {
           ] else ...[
             const SizedBox(height: 20),
             NextConfirmedActivityCard(userId: user.id),
+            PendingTriviasSection(jugadorId: user.id),
           ],
         ],
       ),
@@ -131,7 +133,8 @@ class NextCoachCommitmentCard extends ConsumerWidget {
 
         for (final category in categories) {
           final activitiesState = ref.watch(datebookProvider(category.id));
-          final activities = activitiesState.asData?.value ?? const <ActivityEntity>[];
+          final activities =
+              activitiesState.asData?.value ?? const <ActivityEntity>[];
 
           for (final activity in activities) {
             if (!activity.fechaHora.isAfter(now)) continue;

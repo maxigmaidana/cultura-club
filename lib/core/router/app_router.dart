@@ -8,6 +8,8 @@ import 'package:cultura_club/features/datebook/presentation/screens/datebook_scr
 import 'package:cultura_club/features/evaluation/domain/entities/player_stats_entity.dart';
 import 'package:cultura_club/features/evaluation/presentation/screens/evaluation_form_screen.dart';
 import 'package:cultura_club/features/evaluation/presentation/screens/player_stats_chart_screen.dart';
+import 'package:cultura_club/features/gamification/presentation/screens/active_trivia_screen.dart';
+import 'package:cultura_club/features/gamification/presentation/screens/gamification_screen.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -111,6 +113,18 @@ final GoRouter appRouter = GoRouter(
       path: PlayerStatsChartScreen.pathName,
       builder: (context, state) =>
           PlayerStatsChartScreen(stats: state.extra as PlayerStatsEntity),
+    ),
+    GoRoute(
+      path: '/gamification/:jugadorId',
+      builder: (context, state) =>
+          GamificationScreen(jugadorId: state.pathParameters['jugadorId']!),
+    ),
+    GoRoute(
+      path: '/active-trivia/:triviaId/:jugadorId',
+      builder: (context, state) => ActiveTriviaScreen(
+        triviaId: state.pathParameters['triviaId']!,
+        jugadorId: state.pathParameters['jugadorId']!,
+      ),
     ),
   ],
 );
