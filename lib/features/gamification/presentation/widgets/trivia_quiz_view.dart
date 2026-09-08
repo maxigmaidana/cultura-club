@@ -21,7 +21,7 @@ class TriviaQuizView extends ConsumerStatefulWidget {
 
 class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
   int _currentQuestionIndex = 0;
-  final Map<String, String> _selectedAnswers = {};
+  final Map<String, int> _selectedAnswers = {}; // Cambio: usar índice de opción
   bool _isSubmitting = false;
 
   @override
@@ -33,12 +33,6 @@ class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
     final isAnswerSelected = _selectedAnswers.containsKey(currentPregunta.id);
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-        title: Text(widget.trivia.titulo),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
           // _ProgressIndicator(
@@ -62,10 +56,10 @@ class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
                   const SizedBox(height: 24),
                   _AnswerOptions(
                     pregunta: currentPregunta,
-                    selectedAnswerId: _selectedAnswers[currentPregunta.id],
-                    onSelectAnswer: (opcionId) {
+                    selectedAnswerIndex: _selectedAnswers[currentPregunta.id],
+                    onSelectAnswer: (selectedIndex) {
                       setState(() {
-                        _selectedAnswers[currentPregunta.id] = opcionId;
+                        _selectedAnswers[currentPregunta.id] = selectedIndex;
                       });
                     },
                   ),
@@ -111,7 +105,7 @@ class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
           .map(
             (entry) => RespuestaEntity(
               preguntaId: entry.key,
-              opcionElegidaId: entry.value,
+              opcionElegidaId: _selectedAnswers[entry.key].toString(),
             ),
           )
           .toList();
@@ -145,15 +139,20 @@ class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
             ),
           );
 
-          ref.invalidate(pendingTriviasProvider(widget.jugadorId));
-          ref.invalidate(completedTriviasProvider(widget.jugadorId));
-          ref.invalidate(totalGameificationPointsProvider(widget.jugadorId));
+          // Navegar primero, invalidar después
+          // Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            ref.invalidate(pendingTriviasProvider(widget.jugadorId));
+            GoRouter.of(context).replace('/home');
 
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              GoRouter.of(context).go('/home');
-            }
-          });
+            // Invalidar providers después de navegar
+            // Future.delayed(const Duration(milliseconds: 200), () {
+            // ref.invalidate(pendingTriviasProvider(widget.jugadorId));
+            // ref.invalidate(completedTriviasProvider(widget.jugadorId));
+            // ref.invalidate(totalGameificationPointsProvider(widget.jugadorId));
+            // });
+          }
+          // });
         },
       );
     } catch (e) {
@@ -230,12 +229,12 @@ class _ProgressIndicator extends StatelessWidget {
 /// Widget para mostrar opciones de respuesta
 class _AnswerOptions extends StatelessWidget {
   final PreguntaEntity pregunta;
-  final String? selectedAnswerId;
-  final Function(String) onSelectAnswer;
+  final int? selectedAnswerIndex;
+  final Function(int) onSelectAnswer;
 
   const _AnswerOptions({
     required this.pregunta,
-    required this.selectedAnswerId,
+    required this.selectedAnswerIndex,
     required this.onSelectAnswer,
   });
 
@@ -243,13 +242,14 @@ class _AnswerOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: pregunta.opciones.asMap().entries.map((entry) {
+        final index = entry.key;
         final opcion = entry.value;
-        final isSelected = selectedAnswerId == opcion;
+        final isSelected = selectedAnswerIndex == index;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12.0),
           child: GestureDetector(
-            onTap: () => onSelectAnswer(opcion),
+            onTap: () => onSelectAnswer(index),
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
