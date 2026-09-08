@@ -63,6 +63,26 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
     super.dispose();
   }
 
+  InputDecoration _buildInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.grey[50],
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.red[900]!, width: 2),
+      ),
+    );
+  }
+
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
     final date = await showDatePicker(
@@ -175,23 +195,9 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20.0),
           children: [
-            TextFormField(
-              controller: _tituloController,
-              decoration: const InputDecoration(
-                labelText: 'Título',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'El título es obligatorio'
-                  : null,
-            ),
-            const SizedBox(height: 16),
             DropdownButtonFormField<ActivityTipo>(
               initialValue: _tipo,
-              decoration: const InputDecoration(
-                labelText: 'Tipo',
-                border: OutlineInputBorder(),
-              ),
+              decoration: _buildInputDecoration('Tipo'),
               items: ActivityTipo.values
                   .map(
                     (tipo) =>
@@ -203,14 +209,21 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
               },
             ),
             const SizedBox(height: 16),
+            TextFormField(
+              controller: _tituloController,
+              decoration: _buildInputDecoration('Título'),
+              validator: (value) => (value == null || value.trim().isEmpty)
+                  ? 'El título es obligatorio'
+                  : null,
+            ),
+            const SizedBox(height: 16),
+
             InkWell(
               onTap: _pickDateTime,
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Fecha y hora',
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.calendar_today),
-                ),
+                decoration: _buildInputDecoration(
+                  'Fecha y hora',
+                ).copyWith(suffixIcon: const Icon(Icons.calendar_today)),
                 child: Text(
                   _fechaHora == null
                       ? 'Seleccionar fecha y hora'
@@ -221,18 +234,12 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _lugarController,
-              decoration: const InputDecoration(
-                labelText: 'Lugar',
-                border: OutlineInputBorder(),
-              ),
+              decoration: _buildInputDecoration('Lugar'),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _indicacionesController,
-              decoration: const InputDecoration(
-                labelText: 'Indicaciones',
-                border: OutlineInputBorder(),
-              ),
+              decoration: _buildInputDecoration('Indicaciones'),
               maxLines: 3,
             ),
             const SizedBox(height: 24),
@@ -307,11 +314,9 @@ class _RosterPicker extends ConsumerWidget {
 
         final allSelected = selectedPlayerIds.length == roster.length;
 
-        return Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-          ),
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: Column(
             children: [
               CheckboxListTile(
@@ -330,7 +335,42 @@ class _RosterPicker extends ConsumerWidget {
               const Divider(height: 1),
               ...roster.map(
                 (player) => CheckboxListTile(
-                  title: Text(player.fullName),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        player.fullName,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        children: player.posiciones
+                            .map(
+                              (posicion) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.blue[200]!),
+                                ),
+                                child: Text(
+                                  posicion.name.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[900],
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ),
                   activeColor: Colors.red[900],
                   value: selectedPlayerIds.contains(player.userId),
                   onChanged: (checked) {

@@ -2,6 +2,7 @@ import 'package:cultura_club/features/coach/presentation/controller/coach_catego
 import 'package:cultura_club/features/datebook/presentation/controllers/my_agenda_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/my_agenda_screen.dart';
 import 'package:cultura_club/features/evaluation/presentation/controllers/player_dashboard_controller.dart';
+import 'package:cultura_club/features/gamification/presentation/providers/gamification_providers.dart';
 import 'package:cultura_club/features/home/presentation/widgets/tab_inicio_generico.dart';
 import 'package:cultura_club/features/settings/presentation/settings_screen.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
@@ -49,11 +50,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ];
 
     return RefreshIndicator(
+      color: Colors.red[900],
       onRefresh: () async {
         if (isCoach) {
           ref.invalidate(coachCategoriesControllerProvider);
         } else {
           ref.invalidate(playerDashboardControllerProvider);
+          ref.invalidate(pendingTriviasProvider(user.id));
         }
         ref.invalidate(myAgendaControllerProvider);
       },
@@ -64,7 +67,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         bottomNavigationBar: BottomNavigationBar(
           enableFeedback: false,
-
+          backgroundColor: Colors.white,
+          elevation: 8,
+          type: BottomNavigationBarType.fixed,
           currentIndex: _currentIndex,
           onTap: (index) {
             setState(() {
@@ -72,7 +77,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             });
           },
           selectedItemColor: Colors.red[900],
-          unselectedItemColor: Colors.grey,
+          unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
           items: [
             const BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
             if (isCoach)

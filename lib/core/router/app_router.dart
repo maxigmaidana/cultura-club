@@ -11,6 +11,7 @@ import 'package:cultura_club/features/evaluation/presentation/screens/player_sta
 import 'package:cultura_club/features/gamification/presentation/screens/active_trivia_screen.dart';
 import 'package:cultura_club/features/gamification/presentation/screens/gamification_screen.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
+import 'package:cultura_club/features/user/presentation/screens/user_profile_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -124,6 +125,12 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => ActiveTriviaScreen(
         triviaId: state.pathParameters['triviaId']!,
         jugadorId: state.pathParameters['jugadorId']!,
+      ),
+    ),
+    GoRoute(
+      path: '/profile/:userId',
+      builder: (context, state) => UserProfileScreen(
+        userId: state.pathParameters['userId']!,
       ),
     ),
   ],

@@ -145,9 +145,9 @@ class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
             ),
           );
 
-          // ref.invalidate(pendingTriviasProvider(widget.jugadorId));
-          // ref.invalidate(completedTriviasProvider(widget.jugadorId));
-          // ref.invalidate(totalGameificationPointsProvider(widget.jugadorId));
+          ref.invalidate(pendingTriviasProvider(widget.jugadorId));
+          ref.invalidate(completedTriviasProvider(widget.jugadorId));
+          ref.invalidate(totalGameificationPointsProvider(widget.jugadorId));
 
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {

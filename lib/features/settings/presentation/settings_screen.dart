@@ -35,7 +35,10 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.person,
             title: 'Perfil',
             onTap: () {
-              // Acción al tocar 'Perfil'
+              final user = ref.watch(userSessionProvider).value;
+              if (user != null) {
+                GoRouter.of(context).push('/profile/${user.id}');
+              }
             },
           ),
           _buildSettingItem(
