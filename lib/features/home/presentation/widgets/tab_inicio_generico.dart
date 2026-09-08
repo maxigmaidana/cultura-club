@@ -1,4 +1,3 @@
-import 'package:cultura_club/features/auth/presentation/providers/auth_provider.dart';
 import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
@@ -6,10 +5,8 @@ import 'package:cultura_club/features/datebook/presentation/utils/date_formatter
 import 'package:cultura_club/features/gamification/presentation/widgets/pending_trivias_section.dart';
 import 'package:cultura_club/features/home/presentation/widgets/next_confirmed_activity_card.dart';
 import 'package:cultura_club/features/user/domain/entity/user_entity.dart';
-import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class TabInicioGenerico extends ConsumerWidget {
   final UserEntity user;
@@ -22,39 +19,6 @@ class TabInicioGenerico extends ConsumerWidget {
         title: const Text('Inicio'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () async {
-              // 1. Ejecutamos el caso de uso limpio
-              final signOutUseCase = ref.read(signOutUseCaseProvider);
-              final result = await signOutUseCase();
-
-              result.fold(
-                (failure) {
-                  // Manejo de error si falla el deslogueo
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Error al cerrar sesión: ${failure.message}',
-                      ),
-                    ),
-                  );
-                },
-                (_) {
-                  // 2. Limpiamos el estado global
-                  ref.read(userSessionProvider.notifier).clearUser();
-
-                  // 3. Redirigimos
-                  if (context.mounted) {
-                    GoRouter.of(context).go('/login');
-                  }
-                },
-              );
-            },
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
