@@ -40,7 +40,29 @@ class UserRemoteDataSourceImpl implements IUserRemoteDataSource {
         );
       }
 
-      // Mapear a UserModel (incluye playerProfile si es jugador)
+      // Si es entrenador, traer también las categorías asignadas
+      final String? rol = userData['rol'] as String?;
+      if (rol == 'ENTRENADOR') {
+        dev.log(
+          '📡 REQUEST | table: categorias | action: select | filters: entrenador_id = $userId',
+          name: 'Supabase',
+        );
+
+        final categories = await _supabaseClient
+            .from('categorias')
+            .select('id, club_id, nombre, entrenador_id')
+            .eq('entrenador_id', userId);
+
+        dev.log(
+          '✅ RESPONSE | table: categorias | action: select | records: ${(categories as List<dynamic>).length}',
+          name: 'Supabase',
+        );
+
+        // Agregar categorías al userData
+        userData['categorias'] = categories;
+      }
+
+      // Mapear a UserModel (incluye playerProfile si es jugador, o coachCategories si es entrenador)
       return UserModel.fromJson(userData);
     } catch (error, stackTrace) {
       dev.log(

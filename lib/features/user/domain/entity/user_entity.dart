@@ -1,4 +1,5 @@
 import 'package:cultura_club/core/enums/user_rol_enums.dart';
+import 'package:cultura_club/features/coach/domain/entities/category_entity.dart';
 import 'player_profile_entity.dart';
 
 class UserEntity {
@@ -8,6 +9,7 @@ class UserEntity {
   final UserRole role;
   final String fullName;
   final PlayerProfileEntity? playerProfile;
+  final List<CategoryEntity>? coachCategories;
 
   const UserEntity({
     required this.id,
@@ -16,5 +18,6 @@ class UserEntity {
     required this.role,
     required this.fullName,
     this.playerProfile,
+    this.coachCategories,
   });
 }

@@ -57,7 +57,7 @@ class MyAgendaScreen extends ConsumerWidget {
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               itemCount: activities.length,
               itemBuilder: (context, index) {
                 final activity = activities[index];
@@ -115,6 +115,8 @@ class _AgendaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tipoIcon = _getTipoIcon(activity.tipo);
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
@@ -129,54 +131,101 @@ class _AgendaCard extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(tipoIcon, color: Colors.blue[900], size: 24),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          activity.titulo,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          activity.tipo,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _estadoColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: _estadoColor.withOpacity(0.3)),
+                    ),
                     child: Text(
-                      activity.titulo,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      estado.label,
+                      style: TextStyle(
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
+                        color: _estadoColor,
                       ),
                     ),
                   ),
-                  Chip(
-                    label: Text(
-                      estado.label,
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
-                    ),
-                    backgroundColor: _estadoColor,
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    formatActivityDate(activity.fechaHora),
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              _buildInfoRow(
+                Icons.calendar_today,
+                formatActivityDate(activity.fechaHora),
               ),
               if (activity.lugar != null && activity.lugar!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.place, size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 6),
-                    Text(
-                      activity.lugar!,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(Icons.place, activity.lugar!),
               ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getTipoIcon(String tipo) {
+    final tipoUpper = tipo.toUpperCase();
+    if (tipoUpper.contains('PARTIDO')) return Icons.sports_soccer;
+    if (tipoUpper.contains('ENTRENAMIENTO')) return Icons.fitness_center;
+    if (tipoUpper.contains('EVENTO')) return Icons.event;
+    return Icons.calendar_today;
   }
 }

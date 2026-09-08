@@ -1,4 +1,6 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
+import 'package:cultura_club/core/enums/player_enums.dart';
+import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
@@ -291,6 +293,61 @@ class _RosterPicker extends ConsumerWidget {
     required this.onChanged,
   });
 
+  // Clasificar posiciones en categorías
+  String _getPosicionCategory(List<Posicion> posiciones) {
+    if (posiciones.isEmpty) return 'Otros';
+
+    final posicionesList = posiciones.map((p) => p.name.toUpperCase()).toList();
+
+    // Arqueros
+    if (posicionesList.contains('PO')) return 'Arqueros';
+
+    // Defensas: DFC/DFI/DFD y variantes
+    if (posicionesList.any(
+      (p) => ['DFC', 'DFI', 'DFD', 'LI', 'LD', 'CAI', 'CAD'].contains(p),
+    )) {
+      return 'Defensas';
+    }
+
+    // Mediocampistas: MC/MD/MI/MCD/MCO
+    if (posicionesList.any(
+      (p) => ['MC', 'MD', 'MI', 'MCD', 'MCO'].contains(p),
+    )) {
+      return 'Mediocampistas';
+    }
+
+    // Delanteros: DC/SD/EI/ED
+    if (posicionesList.any((p) => ['DC', 'SD', 'EI', 'ED', 'MP'].contains(p))) {
+      return 'Delanteros';
+    }
+
+    return 'Otros';
+  }
+
+  Map<String, List<PlayerProfileEntity>> _groupByPosition(
+    List<PlayerProfileEntity> roster,
+  ) {
+    final grouped = <String, List<PlayerProfileEntity>>{};
+    const categories = [
+      'Arqueros',
+      'Defensas',
+      'Mediocampistas',
+      'Delanteros',
+      'Otros',
+    ];
+
+    for (final category in categories) {
+      grouped[category] = [];
+    }
+
+    for (final PlayerProfileEntity player in roster) {
+      final category = _getPosicionCategory(player.posiciones);
+      grouped[category]?.add(player);
+    }
+
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rosterState = ref.watch(rosterControllerProvider(categoriaId));
@@ -313,13 +370,23 @@ class _RosterPicker extends ConsumerWidget {
         }
 
         final allSelected = selectedPlayerIds.length == roster.length;
+        final grouped = _groupByPosition(roster);
+        final nonEmptyGroups = grouped.entries
+            .where(
+              (MapEntry<String, List<PlayerProfileEntity>> entry) =>
+                  entry.value.isNotEmpty,
+            )
+            .toList();
 
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: Column(
-            children: [
-              CheckboxListTile(
+        return Column(
+          children: [
+            // Card para "Seleccionar todos"
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CheckboxListTile(
                 title: const Text(
                   'Seleccionar todos',
                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -332,60 +399,100 @@ class _RosterPicker extends ConsumerWidget {
                   );
                 },
               ),
-              const Divider(height: 1),
-              ...roster.map(
-                (player) => CheckboxListTile(
-                  title: Column(
+            ),
+            const SizedBox(height: 16),
+            // Cards por categoría
+            ...nonEmptyGroups.map((
+              MapEntry<String, List<PlayerProfileEntity>> entry,
+            ) {
+              final String categoryName = entry.key;
+              final List<PlayerProfileEntity> players = entry.value;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        player.fullName,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          categoryName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red[900],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 4,
-                        children: player.posiciones
-                            .map(
-                              (posicion) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.blue[200]!),
-                                ),
-                                child: Text(
-                                  posicion.name.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue[900],
-                                  ),
+                      const Divider(height: 1),
+                      ...players.map((PlayerProfileEntity player) {
+                        return CheckboxListTile(
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                player.fullName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            )
-                            .toList(),
-                      ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                spacing: 4,
+                                children: player.posiciones
+                                    .map(
+                                      (Posicion posicion) => Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue[50],
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.blue[200]!,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          posicion.name.toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue[900],
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ],
+                          ),
+                          activeColor: Colors.red[900],
+                          value: selectedPlayerIds.contains(player.userId),
+                          onChanged: (checked) {
+                            final updated = Set<String>.from(selectedPlayerIds);
+                            if (checked == true) {
+                              updated.add(player.userId);
+                            } else {
+                              updated.remove(player.userId);
+                            }
+                            onChanged(updated);
+                          },
+                        );
+                      }),
                     ],
                   ),
-                  activeColor: Colors.red[900],
-                  value: selectedPlayerIds.contains(player.userId),
-                  onChanged: (checked) {
-                    final updated = Set<String>.from(selectedPlayerIds);
-                    if (checked == true) {
-                      updated.add(player.userId);
-                    } else {
-                      updated.remove(player.userId);
-                    }
-                    onChanged(updated);
-                  },
                 ),
-              ),
-            ],
-          ),
+              );
+            }),
+          ],
         );
       },
     );

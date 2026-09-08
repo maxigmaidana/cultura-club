@@ -38,6 +38,46 @@ class ActivityDetailScreen extends ConsumerWidget {
         );
   }
 
+  Widget _buildDetailInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.red[900], size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getTipoIcon(String tipo) {
+    final tipoUpper = tipo.toUpperCase();
+    if (tipoUpper.contains('PARTIDO')) return Icons.sports_soccer;
+    if (tipoUpper.contains('ENTRENAMIENTO')) return Icons.fitness_center;
+    if (tipoUpper.contains('EVENTO')) return Icons.event;
+    return Icons.calendar_today;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final citationState = ref.watch(citationControllerProvider);
@@ -77,83 +117,165 @@ class ActivityDetailScreen extends ConsumerWidget {
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(16.0),
             children: [
-              Text(
-                ActivityTipo.fromString(activity.tipo).label,
-                style: TextStyle(
-                  color: Colors.red[900],
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              // Sección: Tipo e Información básica
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              _getTipoIcon(activity.tipo),
+                              color: Colors.blue[900],
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ActivityTipo.fromString(activity.tipo).label,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  activity.titulo,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDetailInfoRow(
+                        Icons.calendar_today,
+                        'Fecha y hora',
+                        formatActivityDate(activity.fechaHora),
+                      ),
+                      if (activity.lugar != null &&
+                          activity.lugar!.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _buildDetailInfoRow(
+                          Icons.place,
+                          'Lugar',
+                          activity.lugar!,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                activity.titulo,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              _InfoRow(
-                icon: Icons.calendar_today,
-                label: formatActivityDate(activity.fechaHora),
-              ),
-              if (activity.lugar != null && activity.lugar!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _InfoRow(icon: Icons.place, label: activity.lugar!),
-              ],
+              const SizedBox(height: 24),
+              // Sección: Indicaciones
               if (activity.indicaciones != null &&
                   activity.indicaciones!.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                const Text(
-                  'Indicaciones',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
                 Text(
-                  activity.indicaciones!,
-                  style: const TextStyle(color: Colors.black87),
+                  'Indicaciones',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[900],
+                  ),
                 ),
-              ],
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: isSubmitting
-                          ? null
-                          : () => _respond(context, ref, 'confirma'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                const SizedBox(height: 12),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      activity.indicaciones!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                        height: 1.5,
                       ),
-                      icon: const Icon(Icons.check),
-                      label: const Text('Confirmar Asistencia'),
                     ),
                   ),
-                ],
+                ),
+                const SizedBox(height: 24),
+              ],
+              // Sección: Acciones
+              Text(
+                'Mi Respuesta',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[900],
+                ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: isSubmitting
-                          ? null
-                          : () => _respond(context, ref, 'no_asiste'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red[900],
-                        side: BorderSide(color: Colors.red[900]!),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: const Icon(Icons.close),
-                      label: const Text('No Asistir'),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => _respond(context, ref, 'confirma'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green[700],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                ],
+                  icon: const Icon(Icons.check),
+                  label: const Text(
+                    'Confirmar Asistencia',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => _respond(context, ref, 'no_asiste'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red[900],
+                    side: BorderSide(color: Colors.red[900]!),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.close),
+                  label: const Text(
+                    'No Asistir',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
             ],
           ),

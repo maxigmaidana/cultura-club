@@ -9,6 +9,8 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userSessionProvider).value;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuración'),
@@ -35,7 +37,6 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.person,
             title: 'Perfil',
             onTap: () {
-              final user = ref.watch(userSessionProvider).value;
               if (user != null) {
                 GoRouter.of(context).push('/profile/${user.id}');
               }
@@ -52,39 +53,47 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Sección: Gamificación y Disciplina
-          Text(
-            'Rendimiento',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.red[900],
-              letterSpacing: 0.5,
+          // Sección: Gamificación y Disciplina (solo para jugadores)
+          if (!user!.role.isCoach) ...[
+            Text(
+              'Rendimiento',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[900],
+                letterSpacing: 0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          _buildSettingItem(
-            context,
-            ref,
-            icon: Icons.sports_soccer,
-            title: 'Gamificación',
-            onTap: () {
-              final user = ref.watch(userSessionProvider).value;
-              if (user != null) {
+            const SizedBox(height: 12),
+            _buildSettingItem(
+              context,
+              ref,
+              icon: Icons.health_and_safety,
+              title: 'Mi evolución',
+              onTap: () {
+                GoRouter.of(context).push('/health');
+              },
+            ),
+            _buildSettingItem(
+              context,
+              ref,
+              icon: Icons.sports_soccer,
+              title: 'Gamificación',
+              onTap: () {
                 GoRouter.of(context).push('/gamification/${user.id}');
-              }
-            },
-          ),
-          _buildSettingItem(
-            context,
-            ref,
-            icon: Icons.warning,
-            title: 'Sanciones',
-            onTap: () {
-              // Acción al tocar 'Sanciones'
-            },
-          ),
-          const SizedBox(height: 24),
+              },
+            ),
+            _buildSettingItem(
+              context,
+              ref,
+              icon: Icons.warning,
+              title: 'Sanciones',
+              onTap: () {
+                // Acción al tocar 'Sanciones'
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
 
           // Sección: Sesión
           Text(

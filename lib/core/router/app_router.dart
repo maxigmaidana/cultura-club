@@ -10,6 +10,7 @@ import 'package:cultura_club/features/evaluation/presentation/screens/evaluation
 import 'package:cultura_club/features/evaluation/presentation/screens/player_stats_chart_screen.dart';
 import 'package:cultura_club/features/gamification/presentation/screens/active_trivia_screen.dart';
 import 'package:cultura_club/features/gamification/presentation/screens/gamification_screen.dart';
+import 'package:cultura_club/features/health/presentation/healt_screen.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
 import 'package:cultura_club/features/user/presentation/screens/user_profile_screen.dart';
 import 'package:flutter/foundation.dart';
@@ -129,9 +130,9 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/profile/:userId',
-      builder: (context, state) => UserProfileScreen(
-        userId: state.pathParameters['userId']!,
-      ),
+      builder: (context, state) =>
+          UserProfileScreen(userId: state.pathParameters['userId']!),
     ),
+    GoRoute(path: '/health', builder: (context, state) => const HealthScreen()),
   ],
 );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:cultura_club/features/coach/domain/entities/category_entity.dart';
 import '../../domain/entity/player_profile_entity.dart';
 import '../../domain/entity/user_entity.dart';
 import '../providers/user_details_providers.dart';
@@ -90,6 +91,22 @@ class UserProfileScreen extends ConsumerWidget {
                 _buildPhysicalStatsCard(user.playerProfile!),
                 const SizedBox(height: 12),
                 _buildPositionsCard(user.playerProfile!),
+              ],
+
+              // Sección: Categorías del Entrenador (condicional)
+              if (user.coachCategories != null &&
+                  user.coachCategories!.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                Text(
+                  'Categorías Asignadas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[900],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildCategoriesCard(user.coachCategories!),
               ],
             ],
           ),
@@ -321,6 +338,63 @@ class UserProfileScreen extends ConsumerWidget {
                     ),
                   )
                   .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesCard(List<CategoryEntity> categories) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Categorías',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[900],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: categories.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final CategoryEntity category = categories[index];
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.sports, color: Colors.blue[900], size: 20),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          category.nombre,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),

@@ -163,6 +163,70 @@ class _PlayerList extends StatelessWidget {
     required this.emptyLabel,
   });
 
+  // Clasificar posiciones en categorías
+  String _getPosicionCategory(List<dynamic> posiciones) {
+    if (posiciones.isEmpty) return 'Otros';
+
+    final posicionesList = posiciones
+        .map((p) => p.toString().toUpperCase())
+        .toList();
+
+    // Arqueros
+    if (posicionesList.contains('PO')) return 'Arqueros';
+
+    // Defensas: DFC/DFI/DFD y variantes
+    if (posicionesList.any(
+      (p) => ['DFC', 'DFI', 'DFD', 'LI', 'LD', 'CAI', 'CAD'].contains(p),
+    )) {
+      return 'Defensas';
+    }
+
+    // Mediocampistas: MC/MD/MI/MCD/MCO
+    if (posicionesList.any(
+      (p) => ['MC', 'MD', 'MI', 'MCD', 'MCO'].contains(p),
+    )) {
+      return 'Mediocampistas';
+    }
+
+    // Delanteros: DC/SD/EI/ED
+    if (posicionesList.any((p) => ['DC', 'SD', 'EI', 'ED', 'MP'].contains(p))) {
+      return 'Delanteros';
+    }
+
+    return 'Otros';
+  }
+
+  Map<String, List<(CitationEntity, PlayerProfileEntity?, String)>>
+  _groupByPosition() {
+    final grouped =
+        <String, List<(CitationEntity, PlayerProfileEntity?, String)>>{};
+    const categories = [
+      'Arqueros',
+      'Defensas',
+      'Mediocampistas',
+      'Delanteros',
+      'Otros',
+    ];
+
+    // Inicializar categorías vacías
+    for (final category in categories) {
+      grouped[category] = [];
+    }
+
+    // Agrupar citas por categoría de posición
+    for (final citation in citations) {
+      final player = playersById[citation.jugadorId];
+      final category = _getPosicionCategory(player?.posiciones ?? []);
+      final posiciones = player == null || player.posiciones.isEmpty
+          ? ''
+          : player.posiciones.map((p) => p.name.toUpperCase()).join(', ');
+
+      grouped[category]?.add((citation, player, posiciones));
+    }
+
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (citations.isEmpty) {
@@ -171,26 +235,48 @@ class _PlayerList extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(12.0),
-      itemCount: citations.length,
-      itemBuilder: (context, index) {
-        final citation = citations[index];
-        final player = playersById[citation.jugadorId];
-        final name = player?.fullName ?? 'Jugador desconocido';
-        final posiciones = player == null || player.posiciones.isEmpty
-            ? null
-            : player.posiciones.map((p) => p.name.toUpperCase()).join(', ');
+    final grouped = _groupByPosition();
+    // Solo mostrar categorías que tengan jugadores
+    final nonEmptyGroups = grouped.entries
+        .where((entry) => entry.value.isNotEmpty)
+        .toList();
 
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.red[50],
-            child: Icon(Icons.person, color: Colors.red[900]),
+    return ListView(
+      padding: const EdgeInsets.all(12.0),
+      children: [
+        for (final entry in nonEmptyGroups) ...[
+          // Título de categoría
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            child: Text(
+              entry.key,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[900],
+              ),
+            ),
           ),
-          title: Text(name),
-          subtitle: posiciones != null ? Text(posiciones) : null,
-        );
-      },
+          // Jugadores de la categoría
+          ...entry.value.map((record) {
+            final (citation, player, posiciones) = record;
+            final name = player?.fullName ?? 'Jugador desconocido';
+
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.red[50],
+                child: Icon(Icons.person, color: Colors.red[900]),
+              ),
+              title: Text(name),
+              subtitle: posiciones.isNotEmpty ? Text(posiciones) : null,
+            );
+          }),
+          const Divider(height: 24),
+        ],
+      ],
     );
   }
 }
