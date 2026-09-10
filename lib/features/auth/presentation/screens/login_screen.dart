@@ -1,7 +1,6 @@
 import 'package:cultura_club/features/auth/presentation/controller/login_controller.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,11 +27,19 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  late final FocusNode _passwordFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordFocusNode = FocusNode();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -77,6 +84,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -88,6 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             children: [
               const SizedBox(height: 60),
               // Header
@@ -161,6 +170,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _emailController,
                       enabled: !isLoading,
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      onSubmitted: (_) {
+                        _passwordFocusNode.requestFocus();
+                      },
                       decoration: InputDecoration(
                         labelText: 'Correo electrónico',
                         labelStyle: TextStyle(color: Colors.grey[600]),
@@ -185,8 +198,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Password Field
                     TextField(
                       controller: _passwordController,
+                      focusNode: _passwordFocusNode,
                       enabled: !isLoading,
                       obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) {
+                        if (_emailController.text.trim().isNotEmpty &&
+                            _passwordController.text.trim().isNotEmpty) {
+                          _onLoginPressed();
+                        }
+                      },
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
                         labelStyle: TextStyle(color: Colors.grey[600]),

@@ -52,6 +52,7 @@ class DatebookScreen extends ConsumerWidget {
           data: (activities) {
             if (activities.isEmpty) {
               return ListView(
+                padding: const EdgeInsets.all(0),
                 children: const [
                   SizedBox(height: 120),
                   Center(
@@ -65,7 +66,7 @@ class DatebookScreen extends ConsumerWidget {
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(12.0).copyWith(bottom: 50),
               itemCount: activities.length,
               itemBuilder: (context, index) {
                 final activity = activities[index];

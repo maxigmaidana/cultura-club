@@ -126,7 +126,7 @@ class CategoryPlayersScreen extends ConsumerWidget {
 
           // Dibujamos la lista agrupada por categoría de posición
           return ListView(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0).copyWith(bottom: 50),
             children: [
               for (final MapEntry<String, List<PlayerProfileEntity>> entry
                   in nonEmptyGroups) ...[

@@ -195,7 +195,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0).copyWith(bottom: 40.0),
           children: [
             DropdownButtonFormField<ActivityTipo>(
               initialValue: _tipo,
