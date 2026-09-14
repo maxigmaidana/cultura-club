@@ -1,3 +1,5 @@
+import 'package:cultura_club/core/presentation/widgets/exports.dart';
+import 'package:cultura_club/core/providers/theme_provider.dart';
 import 'package:cultura_club/features/auth/presentation/controller/login_controller.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +10,6 @@ import 'package:go_router/go_router.dart';
 const String clubName = String.fromEnvironment(
   'CLUB_NAME',
   defaultValue: 'Cultura Club',
-);
-const String primaryColorHex = String.fromEnvironment(
-  'PRIMARY_COLOR',
-  defaultValue: '0xFFE2001A',
 );
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -48,11 +46,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, completa todos los campos'),
-          backgroundColor: Colors.red,
-        ),
+      AppSnackBar.show(
+        context,
+        AppSnackBarType.error,
+        'Por favor, completa todos los campos',
       );
       return;
     }
@@ -68,18 +65,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = Color(int.parse(primaryColorHex));
+    final primaryColor = ref.watch(primaryColorProvider);
     final loginState = ref.watch(loginControllerProvider);
     final isLoading = loginState is AsyncLoading;
 
     ref.listen(loginControllerProvider, (_, next) {
       if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error.toString()),
-            backgroundColor: Colors.red[700],
-          ),
-        );
+        AppSnackBar.show(context, AppSnackBarType.error, next.error.toString());
       }
     });
 
@@ -88,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [primaryColor, primaryColor.withOpacity(0.8)],
+            colors: [primaryColor, primaryColor.withValues(alpha: 0.8)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -166,102 +158,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     // Email Field
-                    TextField(
+                    AppTextField(
                       controller: _emailController,
+                      type: AppTextFieldType.email,
                       enabled: !isLoading,
-                      keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      onSubmitted: (_) {
+                      focusNode: null,
+                      onSubmitted: () {
                         _passwordFocusNode.requestFocus();
                       },
-                      decoration: InputDecoration(
-                        labelText: 'Correo electrónico',
-                        labelStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(
-                          Icons.email_outlined,
-                          color: primaryColor,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
-                        ),
-                      ),
                     ),
                     const SizedBox(height: 16),
                     // Password Field
-                    TextField(
+                    AppTextField(
                       controller: _passwordController,
-                      focusNode: _passwordFocusNode,
+                      type: AppTextFieldType.password,
                       enabled: !isLoading,
-                      obscureText: true,
+                      focusNode: _passwordFocusNode,
                       textInputAction: TextInputAction.done,
-                      onSubmitted: (_) {
+                      onSubmitted: () {
                         if (_emailController.text.trim().isNotEmpty &&
                             _passwordController.text.trim().isNotEmpty) {
                           _onLoginPressed();
                         }
                       },
-                      decoration: InputDecoration(
-                        labelText: 'Contraseña',
-                        labelStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(
-                          Icons.lock_outline,
-                          color: primaryColor,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
-                        ),
-                      ),
                     ),
                     const SizedBox(height: 32),
                     // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          disabledBackgroundColor: Colors.grey[400],
-                        ),
-                        onPressed: isLoading ? null : _onLoginPressed,
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text(
-                                'Ingresar',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
+                    AppButton(
+                      onPressed: _onLoginPressed,
+                      label: 'Ingresar',
+                      type: AppButtonType.primary,
+                      isLoading: isLoading,
                     ),
                   ],
                 ),
