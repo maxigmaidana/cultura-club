@@ -1,4 +1,3 @@
-import 'package:cultura_club/core/enums/activity_enums.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/domain/entities/citation_entity.dart';
 import 'package:cultura_club/features/home/presentation/widgets/next_confirmed_activity_card.dart';

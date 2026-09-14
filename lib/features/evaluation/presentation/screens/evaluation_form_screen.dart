@@ -341,7 +341,7 @@ class _EvaluationFormScreenState extends ConsumerState<EvaluationFormScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: deltaColor.withOpacity(0.2),
+                    color: deltaColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

@@ -170,62 +170,6 @@ class _TriviaQuizViewState extends ConsumerState<TriviaQuizView> {
   }
 }
 
-/// Widget que muestra el indicador de progreso del quiz
-class _ProgressIndicator extends StatelessWidget {
-  final int currentIndex;
-  final int totalQuestions;
-  final int totalPoints;
-
-  const _ProgressIndicator({
-    required this.currentIndex,
-    required this.totalQuestions,
-    required this.totalPoints,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Pregunta ${currentIndex + 1} de $totalQuestions',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[700],
-                ),
-              ),
-              Text(
-                'Puntos: $totalPoints',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red[900],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: (currentIndex + 1) / totalQuestions,
-              minHeight: 6,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation(Colors.red[900]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Widget para mostrar opciones de respuesta
 class _AnswerOptions extends StatelessWidget {
   final PreguntaEntity pregunta;

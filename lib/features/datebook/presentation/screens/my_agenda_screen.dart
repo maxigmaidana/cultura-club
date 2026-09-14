@@ -447,9 +447,11 @@ class _AgendaCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: _estadoColor.withOpacity(0.1),
+                      color: _estadoColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: _estadoColor.withOpacity(0.3)),
+                      border: Border.all(
+                        color: _estadoColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       estado.label,

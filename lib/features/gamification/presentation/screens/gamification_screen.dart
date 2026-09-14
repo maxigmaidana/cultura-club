@@ -301,7 +301,7 @@ class GamificationScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.red[900]!.withOpacity(0.3),
+            color: Colors.red[900]!.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -316,7 +316,7 @@ class GamificationScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 12),
@@ -339,7 +339,7 @@ class GamificationScreen extends ConsumerWidget {
             'Sigue respondiendo quizzes para aumentar tu puntuación',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
           ),
         ],
