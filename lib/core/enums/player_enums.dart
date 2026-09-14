@@ -19,7 +19,21 @@ enum PiernaHabil {
 }
 
 enum Posicion {
-  po, dfc, li, ld, cai, cad, mcd, mc, mco, mi, md, ei, ed, sd, dc;
+  po,
+  dfc,
+  li,
+  ld,
+  cai,
+  cad,
+  mcd,
+  mc,
+  mco,
+  mi,
+  md,
+  ei,
+  ed,
+  sd,
+  dc;
 
   // Método para parsear la lista que viene de Supabase
   static Posicion fromString(String value) {
@@ -27,5 +41,33 @@ enum Posicion {
       (e) => e.name.toUpperCase() == value.toUpperCase(),
       orElse: () => Posicion.mc, // Fallback en caso de error
     );
+  }
+}
+
+/// Sector de cancha para sectorizar jugadores
+/// Viene de la columna sector_cancha en la tabla jugadores_perfil
+enum SectorCancha {
+  arquero,
+  defensa,
+  medio,
+  delantero;
+
+  /// Retorna el label legible en español
+  String get label => switch (this) {
+    SectorCancha.arquero => 'Arqueros',
+    SectorCancha.defensa => 'Defensas',
+    SectorCancha.medio => 'Mediocampistas',
+    SectorCancha.delantero => 'Delanteros',
+  };
+
+  /// Parsea el valor que viene de la base de datos
+  static SectorCancha fromString(String? value) {
+    return switch (value?.toUpperCase()) {
+      'ARQUERO' => SectorCancha.arquero,
+      'DEFENSA' => SectorCancha.defensa,
+      'MEDIO' => SectorCancha.medio,
+      'DELANTERO' => SectorCancha.delantero,
+      _ => SectorCancha.medio, // Fallback por defecto
+    };
   }
 }

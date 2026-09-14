@@ -1,6 +1,7 @@
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
 import 'package:cultura_club/core/enums/player_enums.dart';
+import 'package:cultura_club/core/utils/player_grouping_utils.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/create_activity_screen.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/datebook_screen.dart';
 import 'package:flutter/material.dart';
@@ -20,61 +21,6 @@ class CategoryPlayersScreen extends ConsumerWidget {
 
   static const String pathName = '/coach/category/:categoryId';
   static String buildPath(String categoryId) => '/coach/category/$categoryId';
-
-  // Clasificar posiciones en categorías
-  String _getPosicionCategory(List<Posicion> posiciones) {
-    if (posiciones.isEmpty) return 'Otros';
-
-    final posicionesList = posiciones.map((p) => p.name.toUpperCase()).toList();
-
-    // Arqueros
-    if (posicionesList.contains('PO')) return 'Arqueros';
-
-    // Defensas: DFC/DFI/DFD y variantes
-    if (posicionesList.any(
-      (p) => ['DFC', 'DFI', 'DFD', 'LI', 'LD', 'CAI', 'CAD'].contains(p),
-    )) {
-      return 'Defensas';
-    }
-
-    // Mediocampistas: MC/MD/MI/MCD/MCO
-    if (posicionesList.any(
-      (p) => ['MC', 'MD', 'MI', 'MCD', 'MCO'].contains(p),
-    )) {
-      return 'Mediocampistas';
-    }
-
-    // Delanteros: DC/SD/EI/ED
-    if (posicionesList.any((p) => ['DC', 'SD', 'EI', 'ED', 'MP'].contains(p))) {
-      return 'Delanteros';
-    }
-
-    return 'Otros';
-  }
-
-  Map<String, List<PlayerProfileEntity>> _groupByPosition(
-    List<PlayerProfileEntity> players,
-  ) {
-    final grouped = <String, List<PlayerProfileEntity>>{};
-    const categories = [
-      'Arqueros',
-      'Defensas',
-      'Mediocampistas',
-      'Delanteros',
-      'Otros',
-    ];
-
-    for (final category in categories) {
-      grouped[category] = [];
-    }
-
-    for (final PlayerProfileEntity player in players) {
-      final category = _getPosicionCategory(player.posiciones);
-      grouped[category]?.add(player);
-    }
-
-    return grouped;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,19 +62,19 @@ class CategoryPlayersScreen extends ConsumerWidget {
             );
           }
 
-          final grouped = _groupByPosition(players);
+          final grouped = PlayerGroupingUtils.groupPlayersBySector(players);
           final nonEmptyGroups = grouped.entries
               .where(
-                (MapEntry<String, List<PlayerProfileEntity>> entry) =>
+                (MapEntry<SectorCancha, List<PlayerProfileEntity>> entry) =>
                     entry.value.isNotEmpty,
               )
               .toList();
 
-          // Dibujamos la lista agrupada por categoría de posición
+          // Dibujamos la lista agrupada por sector de cancha
           return ListView(
             padding: const EdgeInsets.all(8.0).copyWith(bottom: 50),
             children: [
-              for (final MapEntry<String, List<PlayerProfileEntity>> entry
+              for (final MapEntry<SectorCancha, List<PlayerProfileEntity>> entry
                   in nonEmptyGroups) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -136,7 +82,7 @@ class CategoryPlayersScreen extends ConsumerWidget {
                     vertical: 12.0,
                   ),
                   child: Text(
-                    entry.key,
+                    entry.key.label,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

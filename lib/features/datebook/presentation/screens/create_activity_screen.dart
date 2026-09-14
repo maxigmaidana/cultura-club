@@ -1,5 +1,7 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
 import 'package:cultura_club/core/enums/player_enums.dart';
+import 'package:cultura_club/core/presentation/widgets/exports.dart';
+import 'package:cultura_club/core/utils/player_grouping_utils.dart';
 import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
@@ -115,9 +117,11 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_fechaHora == null) {
-      ScaffoldMessenger.of(
+      AppSnackBar.show(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Seleccioná fecha y hora')));
+        AppSnackBarType.error,
+        'Seleccioná fecha y hora',
+      );
       return;
     }
 
@@ -159,25 +163,19 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error al ${_isEditing ? "editar" : "crear"} la actividad: ${failure.message}',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        AppSnackBar.show(
+          context,
+          AppSnackBarType.error,
+          'Error al ${_isEditing ? "editar" : "crear"} la actividad: ${failure.message}',
         );
       },
       (_) {
         // Se refetchea recién cuando algo vuelva a mirar la lista de esta categoría
         ref.invalidate(datebookProvider(widget.categoriaId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEditing ? '¡Actividad actualizada!' : '¡Actividad creada!',
-            ),
-            backgroundColor: Colors.green,
-          ),
+        AppSnackBar.show(
+          context,
+          AppSnackBarType.success,
+          _isEditing ? '¡Actividad actualizada!' : '¡Actividad creada!',
         );
         GoRouter.of(context).pop();
       },
@@ -262,18 +260,11 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
               ),
             ],
             const SizedBox(height: 32),
-            SizedBox(
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[900],
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _isSubmitting ? null : _submit,
-                child: _isSubmitting
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(_isEditing ? 'Guardar Cambios' : 'Crear Actividad'),
-              ),
+            AppButton(
+              onPressed: _isSubmitting ? null : _submit,
+              label: _isEditing ? 'Guardar Cambios' : 'Crear Actividad',
+              type: AppButtonType.primary,
+              isLoading: _isSubmitting,
             ),
           ],
         ),
@@ -292,61 +283,6 @@ class _RosterPicker extends ConsumerWidget {
     required this.selectedPlayerIds,
     required this.onChanged,
   });
-
-  // Clasificar posiciones en categorías
-  String _getPosicionCategory(List<Posicion> posiciones) {
-    if (posiciones.isEmpty) return 'Otros';
-
-    final posicionesList = posiciones.map((p) => p.name.toUpperCase()).toList();
-
-    // Arqueros
-    if (posicionesList.contains('PO')) return 'Arqueros';
-
-    // Defensas: DFC/DFI/DFD y variantes
-    if (posicionesList.any(
-      (p) => ['DFC', 'DFI', 'DFD', 'LI', 'LD', 'CAI', 'CAD'].contains(p),
-    )) {
-      return 'Defensas';
-    }
-
-    // Mediocampistas: MC/MD/MI/MCD/MCO
-    if (posicionesList.any(
-      (p) => ['MC', 'MD', 'MI', 'MCD', 'MCO'].contains(p),
-    )) {
-      return 'Mediocampistas';
-    }
-
-    // Delanteros: DC/SD/EI/ED
-    if (posicionesList.any((p) => ['DC', 'SD', 'EI', 'ED', 'MP'].contains(p))) {
-      return 'Delanteros';
-    }
-
-    return 'Otros';
-  }
-
-  Map<String, List<PlayerProfileEntity>> _groupByPosition(
-    List<PlayerProfileEntity> roster,
-  ) {
-    final grouped = <String, List<PlayerProfileEntity>>{};
-    const categories = [
-      'Arqueros',
-      'Defensas',
-      'Mediocampistas',
-      'Delanteros',
-      'Otros',
-    ];
-
-    for (final category in categories) {
-      grouped[category] = [];
-    }
-
-    for (final PlayerProfileEntity player in roster) {
-      final category = _getPosicionCategory(player.posiciones);
-      grouped[category]?.add(player);
-    }
-
-    return grouped;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -370,10 +306,10 @@ class _RosterPicker extends ConsumerWidget {
         }
 
         final allSelected = selectedPlayerIds.length == roster.length;
-        final grouped = _groupByPosition(roster);
+        final grouped = PlayerGroupingUtils.groupPlayersBySector(roster);
         final nonEmptyGroups = grouped.entries
             .where(
-              (MapEntry<String, List<PlayerProfileEntity>> entry) =>
+              (MapEntry<SectorCancha, List<PlayerProfileEntity>> entry) =>
                   entry.value.isNotEmpty,
             )
             .toList();
@@ -401,11 +337,11 @@ class _RosterPicker extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Cards por categoría
+            // Cards por sector
             ...nonEmptyGroups.map((
-              MapEntry<String, List<PlayerProfileEntity>> entry,
+              MapEntry<SectorCancha, List<PlayerProfileEntity>> entry,
             ) {
-              final String categoryName = entry.key;
+              final SectorCancha sector = entry.key;
               final List<PlayerProfileEntity> players = entry.value;
 
               return Padding(
@@ -421,7 +357,7 @@ class _RosterPicker extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
-                          categoryName,
+                          sector.label,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

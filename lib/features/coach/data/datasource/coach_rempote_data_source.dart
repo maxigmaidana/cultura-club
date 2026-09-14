@@ -71,6 +71,7 @@ class CoachRemoteDataSourceImpl implements CoachRemoteDataSource {
           pierna_habil,
           altura_cm,
           peso_kg,
+          sector_cancha,
           usuarios ( nombre_completo )
         ''')
           .eq('categoria_id', categoryId);

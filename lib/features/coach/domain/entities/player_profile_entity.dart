@@ -5,6 +5,7 @@ class PlayerProfileEntity {
   final String fullName;
   final List<Posicion> posiciones;
   final PiernaHabil piernaHabil;
+  final SectorCancha sectorCancha;
   final double? alturaCm;
   final double? pesoKg;
 
@@ -13,6 +14,7 @@ class PlayerProfileEntity {
     required this.fullName,
     required this.posiciones,
     required this.piernaHabil,
+    required this.sectorCancha,
     this.alturaCm,
     this.pesoKg,
   });

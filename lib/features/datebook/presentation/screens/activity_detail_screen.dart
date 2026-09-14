@@ -292,20 +292,20 @@ class ActivityDetailScreen extends ConsumerWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
+// class _InfoRow extends StatelessWidget {
+//   final IconData icon;
+//   final String label;
 
-  const _InfoRow({required this.icon, required this.label});
+//   const _InfoRow({required this.icon, required this.label});
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.red[900], size: 20),
-        const SizedBox(width: 8),
-        Expanded(child: Text(label, style: const TextStyle(fontSize: 15))),
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       children: [
+//         Icon(icon, color: Colors.red[900], size: 20),
+//         const SizedBox(width: 8),
+//         Expanded(child: Text(label, style: const TextStyle(fontSize: 15))),
+//       ],
+//     );
+//   }
+// }

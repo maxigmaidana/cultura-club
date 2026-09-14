@@ -12,11 +12,15 @@ class PlayerProfileModel {
     final posicionesRaw = json['posiciones'] as List<dynamic>? ?? [];
     final posiciones = posicionesRaw.map((p) => Posicion.fromString(p.toString())).toList();
 
+    // 3. Parseamos el sector de cancha desde la DB
+    final sectorCancha = SectorCancha.fromString(json['sector_cancha'] as String?);
+
     return PlayerProfileEntity(
       userId: json['usuario_id'] ?? '',
       fullName: fullName,
       posiciones: posiciones,
       piernaHabil: PiernaHabil.fromString(json['pierna_habil']),
+      sectorCancha: sectorCancha,
       alturaCm: json['altura_cm']?.toDouble(),
       pesoKg: json['peso_kg']?.toDouble(),
     );
