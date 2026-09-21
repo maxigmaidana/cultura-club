@@ -1,138 +1,181 @@
-# API Endpoints — Cultura Club
+# API Endpoints - Cultura Club
 
-> Este proyecto usa **Supabase como BaaS**: no hay un backend propio con rutas REST custom. Los "endpoints" documentados acá son los métodos de cada `DataSource` (`lib/features/*/data/datasource*/`) que llaman directamente al cliente de Supabase (`supabase_flutter`), agrupados por tabla/servicio. Todas las queries corren con el cliente autenticado del usuario logueado, por lo que están sujetas a las políticas de **Row Level Security (RLS)** configuradas en cada tabla.
+> Este proyecto usa Supabase como BaaS. No hay backend REST propio.
+> Los "endpoints" documentados aca son los metodos de cada DataSource en `lib/features/*/data/**`, que llaman directo al cliente de Supabase.
+> Todas las queries corren con la sesion autenticada del usuario y dependen de RLS.
 
-## Índice
+## Indice
 - Auth (`auth_remote_data_source.dart`)
 - Coach (`coach_rempote_data_source.dart`)
 - Evaluation (`evaluation_remote_data_source.dart`)
 - Datebook (`datebook_remote_data_source.dart`)
+- User (`user_remote_data_source.dart`)
+- Gamification (`trivia_remote_data_source.dart`)
 
 ---
 
-## Auth — `lib/features/auth/data/datasources/auth_remote_data_source.dart`
-
-Interactúa con `supabaseClient.auth` (GoTrue) y la tabla `usuarios`.
+## Auth - `lib/features/auth/data/datasources/auth_remote_data_source.dart`
 
 ### `login(String email, String password)`
-- **Qué hace:** autentica al usuario contra Supabase Auth y luego busca su perfil de negocio en `usuarios`.
-- **Espera:** `email`, `password` (texto plano, viaja por HTTPS a Supabase).
-- **Por qué:** Supabase Auth solo conoce `email`/`password`/`id`; el rol, el club y el nombre del usuario viven en la tabla `usuarios`, así que hace falta un segundo query para armar el `UserModel` completo.
-- **Llamadas:**
-  1. `supabaseClient.auth.signInWithPassword(email, password)` → devuelve `AuthResponse` con `user.id`, `user.email`.
-  2. `supabaseClient.from('usuarios').select('club_id, rol, nombre_completo').eq('id', user.id).maybeSingle()`.
-- **Respuesta:** `UserModel?` con `id`, `email`, `clubId`, `role` (`UserRole.fromString`), `fullName`. `null` si el login fue exitoso en Auth pero no existe fila en `usuarios` (perfil incompleto).
-- **Errores:** si `signInWithPassword` falla, lanza `AuthException` (mal manejada en capas superiores como `Left(AuthFailure(...))`). Si el select de `usuarios` falla, se traga el error y retorna `null` (no relanza).
+- Que hace: autentica con `supabase.auth.signInWithPassword`, luego consulta `usuarios` para completar perfil de negocio.
+- Query:
+  1. `auth.signInWithPassword(email, password)`
+  2. `from('usuarios').select('club_id, rol, nombre_completo').eq('id', user.id).maybeSingle()`
+- Respuesta: `UserModel?`.
+- Detalle: si autentica en Auth pero no hay fila en `usuarios`, retorna `null`.
 
 ### `restoreSession()`
-- **Qué hace:** intenta recuperar la sesión persistida localmente (token guardado por Supabase) y volver a traer el perfil de `usuarios`.
-- **Espera:** nada — usa `supabaseClient.auth.currentSession`.
-- **Por qué:** para no pedirle credenciales al usuario en cada apertura de la app (splash screen).
-- **Respuesta:** `UserModel?`. `null` si no hay sesión guardada o si no existe fila en `usuarios`.
+- Que hace: usa `auth.currentSession` y vuelve a consultar `usuarios`.
+- Respuesta: `UserModel?` o `null`.
 
 ### `signOut()`
-- **Qué hace:** cierra sesión en Supabase Auth (invalida el token).
-- **Espera:** nada.
-- **Respuesta:** `void`. Relanza cualquier error.
+- Que hace: `auth.signOut()`.
+- Respuesta: `void`.
 
 ---
 
-## Coach — `lib/features/coach/data/datasource/coach_rempote_data_source.dart`
+## Coach - `lib/features/coach/data/datasource/coach_rempote_data_source.dart`
 
 ### `getCategoriesByCoach(String coachId)`
-- **Qué hace:** trae las categorías (equipos) que dirige un entrenador.
-- **Espera:** `coachId` (uuid de `usuarios.id`).
-- **Query:** `from('categorias').select('id, club_id, nombre, entrenador_id').eq('entrenador_id', coachId)`.
-- **Por qué:** un entrenador puede tener asignadas 1+ categorías (`categorias.entrenador_id`); se usa en `CoachDashboardScreen` para listar "Mis Categorías".
-- **Respuesta:** `List<CategoryEntity>` (`id`, `clubId`, `nombre`, `entrenadorId`).
+- Que hace: trae categorias donde `entrenador_id = coachId`.
+- Query: `from('categorias').select('id, club_id, nombre, entrenador_id').eq('entrenador_id', coachId)`.
+- Respuesta: `List<CategoryEntity>`.
 
 ### `getRosterByCategory(String categoryId)`
-- **Qué hace:** trae el plantel de jugadores de una categoría, con datos de perfil.
-- **Espera:** `categoryId` (uuid de `categorias.id`).
-- **Query:** `from('jugadores_perfil').select('usuario_id, posiciones, pierna_habil, altura_cm, peso_kg, usuarios(nombre_completo)').eq('categoria_id', categoryId)` — usa un **join implícito de PostgREST** contra `usuarios` para traer el nombre.
-- **Por qué:** `jugadores_perfil` no guarda el nombre del jugador (vive en `usuarios`), por eso el join anidado.
-- **Respuesta:** `List<PlayerProfileEntity>` (`userId`, `fullName`, `posiciones` (enum `Posicion[]`), `piernaHabil` (enum), `alturaCm`, `pesoKg`).
+- Que hace: trae plantel de una categoria con datos del usuario.
+- Query:
+  `from('jugadores_perfil').select('usuario_id, posiciones, pierna_habil, altura_cm, peso_kg, sector_cancha, usuarios(nombre_completo)').eq('categoria_id', categoryId)`
+- Respuesta: `List<PlayerProfileEntity>`.
+- Nota: incluye `sector_cancha` para agrupar jugadores en UI.
 
 ---
 
-## Evaluation — `lib/features/evaluation/data/datasource/evaluation_remote_data_source.dart`
+## Evaluation - `lib/features/evaluation/data/datasource/evaluation_remote_data_source.dart`
 
 ### `getPlayerStats(String playerId, String categoryId)`
-- **Qué hace:** trae las stats **absolutas** (0-100) de un jugador en una categoría puntual.
-- **Query:** `from('jugador_categoria_stats').select('*, categorias(nombre)').eq('jugador_id', playerId).eq('categoria_id', categoryId).maybeSingle()`.
-- **Por qué:** si el jugador nunca fue evaluado en esa categoría no hay fila — en ese caso se devuelve `PlayerStatsModel.defaultStats(...)` (todas las stats en 50) en vez de fallar, para que la UI siempre tenga algo que mostrar.
-- **Respuesta:** `PlayerStatsModel` (`jugadorId`, `categoriaId`, `categoriaNombre`, `velocidad`, `resistencia`, `tecnica`, `tactica`, `actitud`, `asistencia`, `updatedAt`).
+- Que hace: trae stats absolutas (0-100) de un jugador en una categoria.
+- Query:
+  `from('jugador_categoria_stats').select('*, categorias(nombre)').eq('jugador_id', playerId).eq('categoria_id', categoryId).maybeSingle()`
+- Respuesta: `PlayerStatsModel`.
+- Nota: si no existe fila retorna `PlayerStatsModel.defaultStats(...)`.
 
 ### `getAllStatsForPlayer(String playerId)`
-- **Qué hace:** trae **todas** las filas de stats del jugador, sin filtrar por categoría (puede tener más de una si jugó en distintas categorías).
-- **Query:** `from('jugador_categoria_stats').select('*, categorias(nombre)').eq('jugador_id', playerId)`.
-- **Respuesta:** `List<PlayerStatsModel>`. Usado en `PlayerDashboardScreen` ("Mis Estadísticas") para listar una card por categoría.
+- Que hace: trae todas las stats del jugador en todas sus categorias.
+- Query: `from('jugador_categoria_stats').select('*, categorias(nombre)').eq('jugador_id', playerId)`.
+- Respuesta: `List<PlayerStatsModel>`.
 
 ### `insertEvaluation(EvaluationModel delta, PlayerStatsModel newStats)`
-- **Qué hace:** guarda una evaluación del entrenador. Hace **dos escrituras**:
-  1. `from('jugador_categoria_stats').upsert(statsPayload, onConflict: 'jugador_id,categoria_id')` → graba los **valores absolutos nuevos** (0-100) de esa categoría.
-  2. `from('evolucion_jugador').insert(deltaPayload)` → graba el **historial de cambios** (deltas, ej: `+2`, `-1`), quién evaluó (`evaluador_id`) y comentarios (`comentarios_dt`).
-- **Por qué dos tablas:** `jugador_categoria_stats` siempre refleja el estado actual (para mostrar en UI rápido); `evolucion_jugador` es el log histórico/auditable de por qué cambió cada stat.
-- **Espera:**
-  - `delta` → `EvaluationEntity` con `jugadorId`, `categoriaId`, `evaluadorId`, `fechaEvaluacion` (se manda como `YYYY-MM-DD`), deltas de cada stat, `comentariosDt` opcional.
-  - `newStats` → `PlayerStatsEntity` con los valores absolutos ya calculados en la UI (original + delta).
-- **Respuesta:** `void`. Si cualquiera de los dos writes falla, relanza (no hay rollback manual — no es una transacción atómica).
+- Que hace: guarda evaluacion en dos pasos:
+  1. `upsert` de absolutos en `jugador_categoria_stats`.
+  2. `insert` de deltas en `evolucion_jugador`.
+- Queries:
+  - `from('jugador_categoria_stats').upsert(..., onConflict: 'jugador_id,categoria_id')`
+  - `from('evolucion_jugador').insert(...)`
+- Respuesta: `void`.
+- Nota: no hay transaccion; puede quedar escritura parcial si falla el segundo paso.
 
 ---
 
-## Datebook — `lib/features/datebook/data/datasource/datebook_remote_data_source.dart`
-
-Gestiona `actividades` (entrenamientos/partidos/eventos) y `citaciones` (respuesta de cada jugador a una actividad).
+## Datebook - `lib/features/datebook/data/datasource/datebook_remote_data_source.dart`
 
 ### `getActivitiesByCategory(String categoriaId)`
-- **Qué hace:** trae todas las actividades de una categoría, con sus citaciones embebidas.
-- **Query:** `from('actividades').select('*, citaciones(*)').eq('categoria_id', categoriaId).order('fecha_hora', ascending: true)`.
-- **Por qué:** se usa en `DatebookScreen` para listar la agenda completa de esa categoría (jugador y coach comparten esta lista, cambia solo la navegación al tocar una card).
-- **Respuesta:** `List<ActivityModel>` — cada una con `id`, `categoriaId`, `creadorId`, `tipo`, `titulo`, `fechaHora`, `lugar`, `indicaciones`, `estado`, `citaciones: List<CitationEntity>`.
+- Que hace: trae actividades de una categoria con sus citaciones.
+- Query: `from('actividades').select('*, citaciones(*)').eq('categoria_id', categoriaId).order('fecha_hora', ascending: true)`.
+- Respuesta: `List<ActivityModel>`.
 
 ### `respondToCitation(String actividadId, String jugadorId, String estadoRespuesta)`
-- **Qué hace:** guarda/actualiza la respuesta de un jugador a una actividad puntual.
-- **Query:** `from('citaciones').upsert({...}, onConflict: 'actividad_id,jugador_id')`.
-- **Espera:** `estadoRespuesta` debe ser uno de los valores del `CHECK` constraint de `citaciones.estado_respuesta`: `'pendiente'`, `'confirma'`, `'no_asiste'` (ver enum `CitacionEstado`).
-- **Por qué upsert:** la fila puede o no existir (si el coach ya generó la citación al crear la actividad, existe con `'pendiente'`; si no, el jugador la crea al responder). La clave compuesta `(actividad_id, jugador_id)` evita duplicados.
-- **Side effect en el payload:** manda `fecha_respuesta: DateTime.now().toUtc()`.
-- **Respuesta:** `void`.
+- Que hace: crea/actualiza respuesta del jugador.
+- Query:
+  `from('citaciones').upsert({...}, onConflict: 'actividad_id,jugador_id')`
+- Payload incluye: `fecha_respuesta` en UTC (`DateTime.now().toUtc().toIso8601String()`).
+- Respuesta: `void`.
 
 ### `createActivity({categoriaId, creadorId, tipo, titulo, fechaHora, lugar, indicaciones, jugadorIds})`
-- **Qué hace:** crea una actividad nueva y, opcionalmente, cita de una vez a una lista de jugadores.
-- **Espera:**
-  - `categoriaId`, `creadorId` (coach), `tipo` (`'entrenamiento' | 'partido' | 'evento'`, enum `ActivityTipo`), `titulo`, `fechaHora` (se manda en UTC).
-  - `lugar`, `indicaciones` — opcionales.
-  - `jugadorIds` — lista opcional de uuids de jugadores a citar (viene del `_RosterPicker` en `CreateActivityScreen`, con opción "Seleccionar todos").
-- **Query (2 pasos):**
-  1. `from('actividades').insert({...., 'estado': 'publicada'}).select('id').single()` → inserta y devuelve el `id` generado.
-  2. Si `jugadorIds` no está vacío: `from('citaciones').insert([{actividad_id, jugador_id, estado_respuesta: 'pendiente'}, ...])` → una fila por jugador citado, todas en `'pendiente'`.
-- **Por qué el `estado` fijo en `'publicada'`:** la columna `actividades.estado` tiene un `CHECK` constraint que solo acepta `'borrador' | 'publicada' | 'cancelada'` (`'borrador'`: creada pero no visible aún para jugadores; `'publicada'`: visible y citable — default actual de la app; `'cancelada'`: baja lógica, no se borra la fila para no perder historial/respuestas). Hoy la app siempre crea en `'publicada'`; no hay UI todavía para guardar como borrador o cancelar.
-- **Por qué pre-crear citaciones:** si no se insertan de entrada, un jugador no aparece en la pestaña "Pendientes" del dashboard del coach hasta que interactúa. Pre-creándolas en `'pendiente'`, el coach ve de entrada quién falta responder.
-- **Respuesta:** `void`. Si el insert de `actividades` fue exitoso pero el de `citaciones` falla, la actividad **queda creada sin citaciones** (no hay transacción ni rollback).
+- Que hace: crea actividad y opcionalmente genera citaciones iniciales.
+- Queries:
+  1. `from('actividades').insert({... 'estado': 'publicada'}).select('id').single()`
+  2. Si `jugadorIds` no esta vacio: `from('citaciones').insert([...])` con `estado_respuesta: 'pendiente'`.
+- Respuesta: `void`.
+
+### `updateActivity({actividadId, tipo, titulo, fechaHora, lugar, indicaciones})`
+- Que hace: actualiza datos base de una actividad existente.
+- Query:
+  `from('actividades').update({...}).eq('id', actividadId)`
+- Respuesta: `void`.
 
 ### `getActivitiesForPlayer(String jugadorId)`
-- **Qué hace:** trae **todas** las actividades citadas para un jugador, sin importar la categoría (soporta jugadores en más de una categoría).
-- **Query:** `from('citaciones').select('*, actividades(*, citaciones(*))').eq('jugador_id', jugadorId).order('actividades(fecha_hora)', ascending: true)` — se consulta desde `citaciones` (no desde `actividades`) porque el filtro relevante (`jugador_id`) vive ahí.
-- **Por qué el join anidado repite `citaciones` dentro de `actividades`:** cada `ActivityModel.fromJson` espera el array completo de citaciones (para que `ActivityDetailScreen`/`MyAgendaScreen` puedan mostrar el estado propio del jugador logueado sin un segundo query).
-- **Respuesta:** `List<ActivityModel>` (se extrae `row['actividades']` de cada fila de `citaciones` y se parsea igual que en `getActivitiesByCategory`). Usado en `MyAgendaScreen` (tab "Agenda" del jugador en `HomeScreen`).
+- Que hace: trae agenda personal del jugador usando `citaciones` como tabla base.
+- Query:
+  `from('citaciones').select('*, actividades(*, citaciones(*))').eq('jugador_id', jugadorId).order('actividades(fecha_hora)', ascending: true)`
+- Respuesta: `List<ActivityModel>` (parseando `row['actividades']`).
 
 ---
 
-## Resumen de tablas usadas
+## User - `lib/features/user/data/datasources/user_remote_data_source.dart`
 
-| Tabla | Operaciones | Desde |
+### `getUserDetails(String userId)`
+- Que hace: trae perfil extendido del usuario con join a `jugadores_perfil` y `categorias` asociada al jugador.
+- Query principal:
+  `from('usuarios').select('id, club_id, rol, nombre_completo, email, jugadores_perfil(usuario_id, categoria_id, foto_url, fecha_nacimiento, pierna_habil, posiciones, altura_cm, peso_kg, categorias(id, nombre))').eq('id', userId).maybeSingle()`
+- Query adicional condicional:
+  - Si `rol == 'ENTRENADOR'`: `from('categorias').select('id, club_id, nombre, entrenador_id').eq('entrenador_id', userId)`
+- Respuesta: `UserModel` (con `playerProfile` o `coachCategories` segun rol).
+
+---
+
+## Gamification - `lib/features/gamification/data/datasources/trivia_remote_data_source.dart`
+
+### `getPendingTrivias(String jugadorId)`
+- Que hace: trae trivias pendientes para el jugador.
+- Flujo de queries:
+  1. `jugadores_perfil` para obtener `categoria_id` del jugador.
+  2. `trivia_respuestas` para preguntas ya respondidas.
+  3. `trivia_preguntas` para obtener trivias ya respondidas.
+  4. `trivias` + join `trivia_preguntas` filtrando por categoria y excluyendo respondidas.
+- Respuesta: `List<TriviaModel>`.
+
+### `getCompletedTrivias(String jugadorId)`
+- Que hace: trae respuestas del jugador y consolida trivias completadas con puntaje.
+- Query base:
+  `from('trivia_respuestas').select('id, pregunta_id, jugador_id, puntos_ganados, trivia_preguntas(trivia_id, trivias(id, titulo)))').eq('jugador_id', jugadorId).order('id', ascending: false)`
+- Logica adicional: valida completitud por trivia contando preguntas totales en `trivia_preguntas`.
+- Respuesta: `List<CompletedTriviaInfoModel>`.
+
+### `submitTriviaAnswers(String triviaId, String jugadorId, List<Map<String, dynamic>> respuestas)`
+- Que hace: guarda respuestas del quiz una por una.
+- Por cada respuesta:
+  1. Lee `respuesta_correcta` desde `trivia_preguntas`.
+  2. Inserta en `trivia_respuestas` con `es_correcta` y `puntos_ganados` (1/0).
+- Respuesta: `void`.
+
+### `getTotalGameificationPoints(String jugadorId)`
+- Que hace: obtiene puntos totales usando RPC.
+- Query:
+  `rpc('obtener_puntos_totales_gamification', params: {'p_jugador_id': jugadorId})`
+- Respuesta: `int` (si falla retorna `0`).
+
+---
+
+## Resumen de tablas/servicios usados
+
+| Tabla / Servicio | Operaciones | Desde |
 |---|---|---|
 | `auth.users` (GoTrue) | signIn, signOut, currentSession | Auth |
-| `usuarios` | select | Auth |
-| `categorias` | select | Coach |
-| `jugadores_perfil` | select (join `usuarios`) | Coach |
+| `usuarios` | select | Auth, User |
+| `categorias` | select | Coach, User |
+| `jugadores_perfil` | select | Coach, User, Gamification |
 | `jugador_categoria_stats` | select, upsert | Evaluation |
 | `evolucion_jugador` | insert | Evaluation |
-| `actividades` | select (join `citaciones`), insert | Datebook |
-| `citaciones` | select, upsert, insert (join `actividades`) | Datebook |
+| `actividades` | select, insert, update | Datebook |
+| `citaciones` | select, insert, upsert | Datebook |
+| `trivias` | select | Gamification |
+| `trivia_preguntas` | select | Gamification |
+| `trivia_respuestas` | select, insert | Gamification |
+| `rpc.obtener_puntos_totales_gamification` | rpc | Gamification |
 
-## Notas generales / deuda técnica
-- **No hay transacciones**: los flujos de dos escrituras (`insertEvaluation`, `createActivity` con citaciones) pueden quedar a mitad de camino si la segunda escritura falla. No hay compensación/rollback manual.
-- **RLS no está documentado en el código**: todas las queries asumen que las políticas de Supabase filtran correctamente por `club_id`/rol; no hay chequeos de permisos en el cliente más allá de mostrar/ocultar UI según `UserRole`.
-- **Todos los errores se logean con `dart:developer log`** con prefijo `📡`/`✅`/`❌` antes de relanzar (o, en `AuthRemoteDataSource.restoreSession`/`login`, a veces se silencia el error y se retorna `null`).
+## Notas generales
+- No hay transacciones en operaciones de multiples escrituras (`insertEvaluation`, `createActivity`).
+- Los permisos dependen de politicas RLS en Supabase.
+- Los DataSources usan logging con `dart:developer` y relanzan errores en la mayoria de casos.
+
+*Ultima actualizacion: 2026-09-21*

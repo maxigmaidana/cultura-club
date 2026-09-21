@@ -1,134 +1,216 @@
-# Manual de Funcionamiento — Cultura Club (UI)
+# Manual de Funcionamiento - Cultura Club (UI)
 
-> Este documento describe **cómo funciona la app hoy en día** a nivel de interfaz y flujos de usuario: qué pantallas existen, quién las ve, qué se puede hacer en cada una y qué pasa al ejecutar cada acción. Está pensado como referencia rápida para cualquiera que necesite entender el comportamiento actual sin leer todo el código.
+> Documento de referencia del estado actual de la app en runtime.
+> Describe rutas, navegacion real, pantallas activas y comportamiento observable por rol.
 
-Roles del sistema: `SUPER_ADMIN`, `ADMIN_CLUB`, `COACH` (entrenador), `PLAYER` (jugador).
-En el código, `isCoach` es `true` para `ENTRENADOR` y `SUPER_ADMIN` (ambos ven la UI de entrenador).
+Roles del sistema: `SUPER_ADMIN`, `ADMIN_CLUB`, `COACH` (ENTRENADOR), `PLAYER` (JUGADOR).
+Regla actual de UI: `isCoach == true` para ENTRENADOR y SUPER_ADMIN.
 
 ---
 
-## 1. Mapa de navegación
+## 1. Mapa de navegacion
 
 ```
-/                    SplashScreen        → redirige a /home o /login según sesión
-/login               LoginScreen         → pantalla pública de acceso
-/home                HomeScreen (hub con Bottom Navigation, tabs según rol)
+/                                                   SplashScreen
+/login                                              LoginScreen
+/home                                               HomeScreen
 
-/datebook/:categoriaId                                    DatebookScreen (agenda de la categoría)
-/datebook/:categoriaId/create                              CreateActivityScreen (crear)
-/datebook/:categoriaId/activity/:activityId                ActivityDetailScreen (PLAYER)
-/datebook/:categoriaId/activity/:activityId/edit           CreateActivityScreen (editar, COACH)
-/datebook/:categoriaId/activity/:activityId/dashboard       ActivityDashboardScreen (COACH)
+/datebook/:categoriaId                              DatebookScreen
+/datebook/:categoriaId/create                       CreateActivityScreen
+/datebook/:categoriaId/activity/:activityId         ActivityDetailScreen (PLAYER)
+/datebook/:categoriaId/activity/:activityId/edit    CreateActivityScreen (editar, COACH)
+/datebook/:categoriaId/activity/:activityId/dashboard ActivityDashboardScreen (COACH)
 
-/coach/category/:categoryId                                CategoryPlayersScreen (plantel)
-/coach/category/:categoryId/evaluate/:playerId             EvaluationFormScreen (COACH)
+/coach/category/:categoryId                         CategoryPlayersScreen
+/coach/category/:categoryId/evaluate/:playerId      EvaluationFormScreen
+/player/stats-chart/:categoriaId                    PlayerStatsChartScreen
 
-/player/stats-chart/:categoriaId                           PlayerStatsChartScreen (PLAYER)
+/profile/:userId                                    UserProfileScreen
+/health                                             HealthScreen
+/gamification/:jugadorId                            GamificationScreen
+/active-trivia/:triviaId/:jugadorId                ActiveTriviaScreen
 ```
 
 ---
 
-## 2. Login y sesión
+## 2. Login y sesion
 
-1. Al abrir la app aparece el **Splash**: mientras se restaura la sesión guardada en Supabase se muestra un spinner.
-2. Si hay sesión válida → va directo a `/home`. Si no → va a `/login`.
-3. En **Login**, el usuario ingresa email y contraseña.
-   - Si algún campo está vacío: SnackBar "Por favor, completa todos los campos".
-   - Si las credenciales son inválidas: SnackBar rojo con el mensaje de error de Supabase.
-   - Si todo es correcto: se guarda el usuario en la sesión global (`userSessionProvider`) y navega a `/home`.
-4. **Logout**: desde el tab "Inicio", botón de logout en el AppBar. Cierra sesión en Supabase, limpia la sesión local y vuelve a `/login`.
-
----
-
-## 3. Home (hub con Bottom Navigation)
-
-Al entrar a `/home` se arma la navegación inferior según el rol:
-
-| Tab | COACH | PLAYER |
-|---|---|---|
-| 0 — Inicio | ✔ TabInicioGenerico | ✔ TabInicioGenerico |
-| 1 — Categorías / Mis Métricas | ✔ CoachDashboardScreen | ✔ PlayerDashboardScreen |
-| 2 — Agenda | ✘ | ✔ MyAgendaScreen |
-
-Pull-to-refresh en el hub invalida los providers de la pestaña activa (categorías o dashboard del jugador, y siempre la agenda).
-
-### Tab Inicio
-- Saludo con el nombre del usuario.
-- Card fija de "Aviso Importante" (texto hardcodeado, no editable desde la UI todavía).
-- Card dinámica según rol:
-  - **COACH**: "Tu próximo compromiso" — recorre todas sus categorías y busca la actividad futura más cercana (sin importar si está confirmada).
-  - **PLAYER**: "Tu próxima actividad confirmada" — busca, entre las actividades donde el jugador está citado, la más próxima en el tiempo cuya cita esté en estado `confirma`. Si no hay ninguna, la card no se muestra.
+1. Al abrir la app se entra a `SplashScreen` y se intenta restaurar sesion.
+2. Si hay sesion valida: navega a `/home`. Si no: `/login`.
+3. En `LoginScreen`:
+   - Campos vacios: SnackBar de validacion.
+   - Credenciales invalidas: mensaje de error.
+   - Exito: guarda sesion global (`userSessionProvider`) y entra a `/home`.
+4. Logout:
+   - Se ejecuta desde `SettingsScreen` -> opcion "Cerrar sesion".
+   - Hace `signOut`, limpia `userSessionProvider` y navega a `/login`.
 
 ---
 
-## 4. Agenda / Actividades (Datebook)
+## 3. Home (Bottom Navigation)
 
-### 4.1 Ciclo de vida de una actividad
+`HomeScreen` arma 3 tabs para ambos roles:
 
-1. **Coach crea la actividad** desde `CreateActivityScreen` (accesible por FAB en `DatebookScreen` o en `CategoryPlayersScreen`).
-   - Completa: título, tipo (entrenamiento / partido / evento), fecha y hora (date+time picker), lugar (opcional), indicaciones (opcional) y selecciona qué jugadores citar.
-   - Al guardar: se crea la actividad y se insertan las citaciones de los jugadores seleccionados con estado `pendiente`.
-   - Éxito: SnackBar verde, se invalida la agenda de la categoría y vuelve atrás.
-   - Error: SnackBar rojo, permanece en el formulario.
-2. **Jugador ve la actividad** en su pestaña "Agenda" (`MyAgendaScreen`), con un chip de color según su estado de citación:
-   - Naranja = Pendiente
-   - Verde = Confirmado
-   - Rojo = No asiste
-3. **Jugador responde** al tocar la actividad → `ActivityDetailScreen`, con dos botones: "Confirmar Asistencia" (verde) y "No Asistir" (rojo, outline).
-   - Al responder: se actualiza la citación en Supabase, se invalidan la agenda de la categoría y "Mi Agenda", se muestra SnackBar verde "¡Respuesta guardada!" y se vuelve atrás automáticamente.
-4. **Coach revisa respuestas** en `ActivityDashboardScreen` (al tocar la actividad desde `DatebookScreen`), con 3 tabs: Confirmados / Pendientes / No Asisten, cada uno listando los jugadores correspondientes.
-5. **Coach edita la actividad** desde el botón de lápiz en `ActivityDashboardScreen` → reabre `CreateActivityScreen` en modo edición (no permite volver a elegir jugadores, solo editar los datos básicos).
+### Coach (`isCoach == true`)
+- Tab 0: `TabInicioGenerico`
+- Tab 1: `CoachDashboardScreen`
+- Tab 2: `SettingsScreen`
 
-### 4.2 Estados relevantes
-- **Actividad** (`estado`): `borrador`, `publicada`, `cancelada`.
-- **Citación** (`estadoRespuesta`): `pendiente`, `confirma`, `no_asiste`.
+### Player (`isCoach == false`)
+- Tab 0: `TabInicioGenerico`
+- Tab 1: `MyAgendaScreen`
+- Tab 2: `SettingsScreen`
+
+### Pull-to-refresh en Home
+- Coach: invalida `coachCategoriesControllerProvider` y `myAgendaControllerProvider`.
+- Player: invalida `playerDashboardControllerProvider`, `pendingTriviasProvider(user.id)` y `myAgendaControllerProvider`.
+
+> Nota: `PlayerDashboardScreen` existe en el codigo, pero hoy no esta conectado en la navegacion principal de `HomeScreen`.
 
 ---
 
-## 5. Evaluación de jugadores
+## 4. Tab Inicio (`TabInicioGenerico`)
 
-### 5.1 Cómo evalúa el coach
-1. Desde `CategoryPlayersScreen` (lista de jugadores de una categoría), el coach toca un jugador → `EvaluationFormScreen`.
-2. Se cargan los stats actuales del jugador en esa categoría (valores 0–100: velocidad, resistencia, técnica, táctica, actitud, asistencia). Si el jugador no tiene stats previos, arrancan en 50 por defecto.
-3. El coach mueve sliders para cada métrica y puede dejar un comentario.
-4. Al guardar, la app calcula el **delta** (nuevo valor − valor anterior) por cada métrica y hace dos cosas en simultáneo:
-   - Inserta un registro histórico en `evolucion_jugador` con los **deltas** (y el comentario).
-   - Actualiza `jugador_categoria_stats` con los **valores absolutos** nuevos.
-5. Éxito: SnackBar verde "¡Evaluación guardada con éxito!" y vuelve atrás. Error: SnackBar rojo.
+Contenido comun:
+- Saludo con nombre del usuario.
+- Card fija "Aviso Importante".
 
-### 5.2 Cómo el jugador ve sus métricas
-1. `PlayerDashboardScreen` (tab "Mis Métricas") lista una card por cada categoría en la que tiene stats, con el promedio general y un mini-resumen de las 6 métricas.
-2. Si no tiene stats en ninguna categoría, se muestra un mensaje: "Aún no tenés estadísticas. Tu entrenador debe evaluarte primero."
-3. Al tocar una card, entra a `PlayerStatsChartScreen`: gráfico de barras (0–100) por métrica, más el detalle numérico y el promedio general.
+Contenido por rol:
+- Coach: card `NextCoachCommitmentCard` (proxima actividad futura mas cercana entre sus categorias).
+- Player:
+  - `NextConfirmedActivityCard` (proxima actividad confirmada por el jugador).
+  - `PendingTriviasSection` (trivias pendientes).
 
 ---
 
-## 6. Gestión de categorías y plantel (coach)
+## 5. Agenda y actividades (Datebook)
 
-1. `CoachDashboardScreen` (tab "Categorías") lista las categorías donde el usuario es entrenador.
-   - Vacío: "No tenés categorías asignadas."
-2. Al tocar una categoría entra a `CategoryPlayersScreen`: lista de jugadores de esa categoría (nombre, posiciones, pierna hábil).
-   - Icono de calendario en el AppBar lleva a la agenda de esa categoría (`DatebookScreen`).
-   - FAB "Agendar" lleva a crear una actividad para esa categoría.
-   - Tocar un jugador lleva al formulario de evaluación (`EvaluationFormScreen`).
+### 5.1 Vista de categoria (`DatebookScreen`)
+- Muestra actividades de una categoria ordenadas por fecha.
+- Coach al tocar una actividad: va a `ActivityDashboardScreen`.
+- Player al tocar una actividad: va a `ActivityDetailScreen`.
+- Solo coach ve FAB para crear actividad (`CreateActivityScreen`).
+
+### 5.2 Crear actividad (`CreateActivityScreen`)
+- Campos: titulo, tipo, fecha/hora, lugar (opcional), indicaciones (opcional).
+- Coach puede seleccionar jugadores para citar.
+- Al guardar:
+  - Crea actividad con estado `publicada`.
+  - Inserta citaciones iniciales en `pendiente` para jugadores seleccionados.
+
+### 5.3 Detalle para jugador (`ActivityDetailScreen`)
+- Acciones:
+  - Confirmar asistencia (`confirma`).
+  - No asistir (`no_asiste`).
+- Al responder: actualiza citacion, refresca providers y vuelve.
+
+### 5.4 Dashboard para coach (`ActivityDashboardScreen`)
+- Tabs de respuesta: Confirmados / Pendientes / No asisten.
+- Accion de editar actividad -> abre `CreateActivityScreen` en modo edicion.
+
+### 5.5 Estados
+- Actividad: `borrador`, `publicada`, `cancelada`.
+- Citacion: `pendiente`, `confirma`, `no_asiste`.
 
 ---
 
-## 7. Estados comunes en toda la app
+## 6. Categorias y plantel (Coach)
 
-- **Loading**: spinner centrado mientras se espera la respuesta de Supabase.
-- **Error**: mensaje de texto o SnackBar rojo con el detalle del fallo.
-- **Empty state**: mensaje explicativo cuando no hay datos (por ejemplo, sin categorías, sin actividades, sin estadísticas).
-- **Feedback de acciones**: SnackBar verde en éxito, SnackBar rojo en error; casi siempre seguido de invalidar el/los providers relacionados para refrescar la data en pantalla.
+### 6.1 `CoachDashboardScreen`
+- Lista categorias asignadas al entrenador.
+- Empty state cuando no hay categorias.
 
----
-
-## 8. Notas técnicas rápidas (para quien programe)
-
-- Los "próximos" eventos (home, agenda) se calculan siempre comparando `fechaHora` contra `DateTime.now()` y quedándose con el mínimo entre los candidatos válidos — no se confía en el orden en que vienen los datos desde Supabase.
-- Las mutaciones (crear actividad, responder citación, guardar evaluación) siempre invalidan los providers de lectura relacionados para forzar un refetch, en vez de actualizar el estado local a mano.
-- Los stats de jugador se manejan con dos tablas: `jugador_categoria_stats` (valores absolutos actuales) y `evolucion_jugador` (histórico de deltas). Nunca se debe escribir un delta en la tabla de absolutos ni viceversa.
+### 6.2 `CategoryPlayersScreen`
+- Lista jugadores de la categoria.
+- Agrupa visualmente por `sector_cancha`.
+- Action en AppBar: ir a agenda de la categoria (`DatebookScreen`).
+- FAB "Agendar": crear actividad para la categoria.
+- Tap en jugador: abre `EvaluationFormScreen`.
 
 ---
 
-*Última actualización: 2026-08-31. Generado a partir de una exploración exhaustiva del código en `lib/features/`.*
+## 7. Evaluacion de jugadores
+
+### 7.1 Flujo coach (`EvaluationFormScreen`)
+1. Carga stats actuales del jugador (0-100).
+2. Si no hay registro previo, inicia en 50 por metrica.
+3. Coach ajusta sliders y opcionalmente deja comentarios.
+4. Al guardar:
+   - Calcula deltas (nuevo - original).
+   - Upsert de absolutos en `jugador_categoria_stats`.
+   - Insert de deltas en `evolucion_jugador`.
+5. Feedback:
+   - Exito: SnackBar de confirmacion y vuelve.
+   - Error: SnackBar de error.
+
+### 7.2 Visualizacion de stats de jugador
+- `PlayerStatsChartScreen` muestra grafico por metrica + promedio general.
+- Se abre desde puntos del flujo donde exista un `PlayerStatsEntity` disponible.
+
+---
+
+## 8. Configuracion (`SettingsScreen`)
+
+Secciones visibles:
+- Cuenta:
+  - Perfil -> navega a `/profile/:userId`.
+  - Notificaciones (placeholder sin accion real).
+
+Secciones solo jugador (`!isCoach`):
+- Rendimiento:
+  - Mi evolucion -> `/health`.
+  - Gamificacion -> `/gamification/:jugadorId`.
+  - Sanciones (placeholder sin accion real).
+
+Sesion:
+- Cerrar sesion -> signOut + limpiar sesion + `/login`.
+
+---
+
+## 9. Perfil de usuario (`UserProfileScreen`)
+
+- Carga datos por `userId` usando provider remoto.
+- Muestra siempre:
+  - Datos basicos (nombre, rol, email).
+- Si es jugador y tiene `playerProfile`:
+  - Categoria.
+  - Datos fisicos (altura, peso, pierna habil).
+  - Posiciones.
+- Si es entrenador y tiene categorias asignadas:
+  - Lista de categorias del coach.
+
+---
+
+## 10. Salud (`HealthScreen`)
+
+- Pantalla de "Mi Evolucion" accesible desde Settings (jugador).
+- Estado actual: UI estatica (placeholder), sin datasource ni escritura real.
+
+---
+
+## 11. Gamificacion
+
+### 11.1 `GamificationScreen`
+- Muestra:
+  - Puntaje total.
+  - Quizzes pendientes.
+  - Historial de quizzes completados.
+- Tiene pull-to-refresh que refresca puntos, pendientes y completados.
+
+### 11.2 `ActiveTriviaScreen`
+- Carga el quiz por `triviaId` desde pendientes del jugador.
+- Si existe, renderiza `TriviaQuizView` para responder.
+- Si no existe o falla, muestra estados de error/no encontrado.
+
+---
+
+## 12. Estados de UX comunes
+
+- Loading: spinner o skeleton.
+- Error: texto contextual o tarjeta de error.
+- Empty state: mensaje explicativo.
+- Mutaciones: feedback con SnackBar + invalidacion de providers para refrescar data.
+
+---
+
+*Ultima actualizacion: 2026-09-21*
