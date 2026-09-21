@@ -1,3 +1,4 @@
+import 'package:cultura_club/core/presentation/widgets/exports.dart';
 import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
@@ -28,41 +29,13 @@ class TabInicioGenerico extends ConsumerWidget {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
-          Card(
-            color: Colors.red[50],
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.red.shade200),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Icon(Icons.campaign, color: Colors.red[900], size: 40),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Aviso Importante',
-                          style: TextStyle(
-                            color: Colors.red[900],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Los entrenamientos de esta semana se pasan al predio techado por pronóstico de lluvias.',
-                          style: TextStyle(color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          AppInfoCard(
+            icon: Icons.campaign,
+            title: 'Aviso Importante',
+            colorScheme: AppCardColorScheme.red,
+            content: const Text(
+              'Los entrenamientos de esta semana se pasan al predio techado por pronóstico de lluvias.',
+              style: TextStyle(color: Colors.black87),
             ),
           ),
           if (user.role.isCoach) ...[
@@ -112,54 +85,33 @@ class NextCoachCommitmentCard extends ConsumerWidget {
 
         final activity = next;
 
-        return Card(
-          color: Colors.orange[50],
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.orange.shade200),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Icon(Icons.event, color: Colors.orange[800], size: 40),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tu próximo compromiso',
-                        style: TextStyle(
-                          color: Colors.orange[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        activity.titulo,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        formatActivityDate(activity.fechaHora),
-                        style: const TextStyle(color: Colors.black87),
-                      ),
-                      if (activity.lugar != null && activity.lugar!.isNotEmpty)
-                        Text(
-                          activity.lugar!,
-                          style: const TextStyle(color: Colors.black87),
-                        ),
-                    ],
-                  ),
+        return AppInfoCard(
+          icon: Icons.event,
+          title: 'Tu próximo compromiso',
+          colorScheme: AppCardColorScheme.orange,
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                activity.titulo,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                formatActivityDate(activity.fechaHora),
+                style: const TextStyle(color: Colors.black87),
+              ),
+              if (activity.lugar != null && activity.lugar!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  activity.lugar!,
+                  style: const TextStyle(color: Colors.black87),
                 ),
               ],
-            ),
+            ],
           ),
         );
       },

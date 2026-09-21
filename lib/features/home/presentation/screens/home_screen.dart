@@ -1,3 +1,4 @@
+import 'package:cultura_club/core/presentation/widgets/exports.dart';
 import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/my_agenda_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/my_agenda_screen.dart';
@@ -49,6 +50,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       const SettingsScreen(),
     ];
 
+    // Construir items del BottomNav basado en el rol
+    final List<AppBottomNavItem> navItems = [
+      AppBottomNavItem(
+        icon: const Icon(Icons.home),
+        label: '',
+        onTap: () {
+          setState(() {
+            _currentIndex = 0;
+          });
+        },
+      ),
+      if (isCoach)
+        AppBottomNavItem(
+          icon: const Icon(Icons.sports),
+          label: '',
+          onTap: () {
+            setState(() {
+              _currentIndex = 1;
+            });
+          },
+        ),
+      if (!isCoach)
+        AppBottomNavItem(
+          icon: const Icon(Icons.event_note),
+          label: '',
+          onTap: () {
+            setState(() {
+              _currentIndex = 1;
+            });
+          },
+        ),
+      AppBottomNavItem(
+        icon: const Icon(Icons.settings),
+        label: '',
+        onTap: () {
+          setState(() {
+            _currentIndex = isCoach ? 2 : 2;
+          });
+        },
+      ),
+    ];
+
     return RefreshIndicator(
       color: Colors.red[900],
       onRefresh: () async {
@@ -65,37 +108,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           index: _currentIndex,
           children: isCoach ? screens : playerScreens,
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          enableFeedback: false,
-          backgroundColor: Colors.white,
-          elevation: 8,
-          type: BottomNavigationBarType.fixed,
+        bottomNavigationBar: AppBottomNavigationBar(
+          items: navItems,
           currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          selectedItemColor: Colors.red[900],
-          unselectedItemColor: Colors.grey[600],
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          items: [
-            const BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-            if (isCoach)
-              BottomNavigationBarItem(
-                icon: Icon(isCoach ? Icons.sports : Icons.bar_chart),
-                label: '',
-              ),
-            if (!isCoach)
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.event_note),
-                label: '',
-              ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.settings),
-              label: '',
-            ),
-          ],
         ),
       ),
     );

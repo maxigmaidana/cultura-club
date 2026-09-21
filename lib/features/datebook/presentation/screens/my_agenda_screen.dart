@@ -1,7 +1,10 @@
 import 'package:cultura_club/core/enums/activity_enums.dart';
+import 'package:cultura_club/core/presentation/widgets/exports.dart';
+import 'package:cultura_club/core/providers/theme_provider.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/my_agenda_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/activity_detail_screen.dart';
+import 'package:cultura_club/features/datebook/presentation/utils/activity_icon_mapper.dart';
 import 'package:cultura_club/features/datebook/presentation/utils/date_formatter.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
@@ -43,13 +46,14 @@ class _MyAgendaScreenState extends ConsumerState<MyAgendaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = ref.watch(primaryColorProvider);
     final agendaState = ref.watch(myAgendaControllerProvider);
     final currentUserId = ref.watch(userSessionProvider).value?.id;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mi Agenda'),
-        backgroundColor: Colors.red[900],
+        backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         actions: [
           PopupMenuButton<CalendarView>(
@@ -120,12 +124,13 @@ class _MyAgendaScreenState extends ConsumerState<MyAgendaScreen> {
         ],
       ),
       body: RefreshIndicator(
-        color: Colors.red[900],
+        color: primaryColor,
         onRefresh: () =>
             ref.read(myAgendaControllerProvider.notifier).refresh(),
         child: agendaState.when(
-          loading: () =>
-              const Center(child: CircularProgressIndicator(color: Colors.red)),
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Colors.blue),
+          ),
           error: (error, stack) =>
               Center(child: Text('Error al cargar tu agenda: $error')),
           data: (activities) {
@@ -188,11 +193,11 @@ class _MyAgendaScreenState extends ConsumerState<MyAgendaScreen> {
                       },
                       calendarStyle: CalendarStyle(
                         selectedDecoration: BoxDecoration(
-                          color: Colors.red[900],
+                          color: primaryColor,
                           shape: BoxShape.circle,
                         ),
                         todayDecoration: BoxDecoration(
-                          color: Colors.red[200],
+                          color: primaryColor.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
                         ),
                         markerDecoration: BoxDecoration(
@@ -207,15 +212,15 @@ class _MyAgendaScreenState extends ConsumerState<MyAgendaScreen> {
                         titleTextStyle: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.red[900],
+                          color: primaryColor,
                         ),
                         leftChevronIcon: Icon(
                           Icons.chevron_left,
-                          color: Colors.red[900],
+                          color: primaryColor,
                         ),
                         rightChevronIcon: Icon(
                           Icons.chevron_right,
-                          color: Colors.red[900],
+                          color: primaryColor,
                         ),
                       ),
                       eventLoader: (day) {
@@ -248,14 +253,10 @@ class _MyAgendaScreenState extends ConsumerState<MyAgendaScreen> {
                 // Actividades del período seleccionado
                 Expanded(
                   child: myActivities.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No hay actividades en este período',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                      ? const AppEmptyState(
+                          icon: Icons.calendar_today,
+                          title: 'No hay actividades',
+                          subtitle: 'No hay actividades en este período',
                         )
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(
@@ -389,7 +390,7 @@ class _AgendaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tipoIcon = _getTipoIcon(activity.tipo);
+    final tipoIcon = ActivityIconMapper.getIconForActivityType(activity.tipo);
 
     return Card(
       elevation: 2,
@@ -441,67 +442,22 @@ class _AgendaCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _estadoColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: _estadoColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      estado.label,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: _estadoColor,
-                      ),
-                    ),
-                  ),
+                  AppStatusBadge(label: estado.label, color: _estadoColor),
                 ],
               ),
               const SizedBox(height: 12),
-              _buildInfoRow(
-                Icons.calendar_today,
-                formatActivityDate(activity.fechaHora),
+              AppInfoRow(
+                icon: Icons.calendar_today,
+                text: formatActivityDate(activity.fechaHora),
               ),
               if (activity.lugar != null && activity.lugar!.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                _buildInfoRow(Icons.place, activity.lugar!),
+                AppInfoRow(icon: Icons.place, text: activity.lugar!),
               ],
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  IconData _getTipoIcon(String tipo) {
-    final tipoUpper = tipo.toUpperCase();
-    if (tipoUpper.contains('PARTIDO')) return Icons.sports_soccer;
-    if (tipoUpper.contains('ENTRENAMIENTO')) return Icons.fitness_center;
-    if (tipoUpper.contains('EVENTO')) return Icons.event;
-    return Icons.calendar_today;
   }
 }

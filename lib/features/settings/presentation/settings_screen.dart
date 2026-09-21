@@ -1,3 +1,5 @@
+import 'package:cultura_club/core/providers/theme_provider.dart';
+import 'package:cultura_club/core/presentation/widgets/exports.dart';
 import 'package:cultura_club/features/auth/presentation/providers/auth_provider.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
@@ -10,30 +12,21 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userSessionProvider).value;
+    final primaryColor = ref.watch(primaryColorProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuración'),
-        backgroundColor: Colors.red[900],
+        backgroundColor: primaryColor,
         foregroundColor: Colors.white,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
           // Sección: Perfil y Cuenta
-          Text(
-            'Cuenta',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.red[900],
-              letterSpacing: 0.5,
-            ),
-          ),
+          AppSectionHeader(title: 'Cuenta'),
           const SizedBox(height: 12),
-          _buildSettingItem(
-            context,
-            ref,
+          AppSettingItem(
             icon: Icons.person,
             title: 'Perfil',
             onTap: () {
@@ -42,9 +35,7 @@ class SettingsScreen extends ConsumerWidget {
               }
             },
           ),
-          _buildSettingItem(
-            context,
-            ref,
+          AppSettingItem(
             icon: Icons.notifications,
             title: 'Notificaciones',
             onTap: () {
@@ -55,37 +46,23 @@ class SettingsScreen extends ConsumerWidget {
 
           // Sección: Gamificación y Disciplina (solo para jugadores)
           if (!user!.role.isCoach) ...[
-            Text(
-              'Rendimiento',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.red[900],
-                letterSpacing: 0.5,
-              ),
-            ),
+            AppSectionHeader(title: 'Rendimiento'),
             const SizedBox(height: 12),
-            _buildSettingItem(
-              context,
-              ref,
+            AppSettingItem(
               icon: Icons.health_and_safety,
               title: 'Mi evolución',
               onTap: () {
                 GoRouter.of(context).push('/health');
               },
             ),
-            _buildSettingItem(
-              context,
-              ref,
+            AppSettingItem(
               icon: Icons.sports_soccer,
               title: 'Gamificación',
               onTap: () {
                 GoRouter.of(context).push('/gamification/${user.id}');
               },
             ),
-            _buildSettingItem(
-              context,
-              ref,
+            AppSettingItem(
               icon: Icons.warning,
               title: 'Sanciones',
               onTap: () {
@@ -96,19 +73,9 @@ class SettingsScreen extends ConsumerWidget {
           ],
 
           // Sección: Sesión
-          Text(
-            'Sesión',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.red[900],
-              letterSpacing: 0.5,
-            ),
-          ),
+          AppSectionHeader(title: 'Sesión'),
           const SizedBox(height: 12),
-          _buildSettingItem(
-            context,
-            ref,
+          AppSettingItem(
             icon: Icons.logout,
             title: 'Cerrar sesión',
             isDestructive: true,
@@ -118,13 +85,10 @@ class SettingsScreen extends ConsumerWidget {
 
               result.fold(
                 (failure) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Error al cerrar sesión: ${failure.message}',
-                      ),
-                      backgroundColor: Colors.red[700],
-                    ),
+                  AppSnackBar.show(
+                    context,
+                    AppSnackBarType.error,
+                    'Error al cerrar sesión: ${failure.message}',
                   );
                 },
                 (_) {
@@ -138,72 +102,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSettingItem(
-    BuildContext context,
-    WidgetRef ref, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8.0),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: isDestructive ? Colors.red[200]! : Colors.grey[300]!,
-        ),
-        borderRadius: BorderRadius.circular(8),
-        color: isDestructive ? Colors.red[50] : Colors.grey[50],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 14.0,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isDestructive ? Colors.red[100] : Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: isDestructive ? Colors.red[700] : Colors.red[900],
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: isDestructive ? Colors.red[700] : Colors.grey[900],
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: isDestructive ? Colors.red[400] : Colors.grey[400],
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
