@@ -1,6 +1,8 @@
 import 'package:cultura_club/core/errors/failures.dart';
+import 'package:cultura_club/features/datebook/domain/entities/roster_player_for_activity_entity.dart';
 import 'package:cultura_club/features/datebook/domain/repository/datebook_repository.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/activity_entity.dart';
 import '../datasource/datebook_remote_data_source.dart';
 
@@ -64,6 +66,8 @@ class DatebookRepositoryImpl implements DatebookRepository {
         jugadorIds: jugadorIds,
       );
       return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -102,6 +106,21 @@ class DatebookRepositoryImpl implements DatebookRepository {
         jugadorId,
       );
       return Right(activities);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<RosterPlayerForActivityEntity>>>
+  getRosterWithAvailability(String categoryId) async {
+    try {
+      final roster = await remoteDataSource.getRosterWithAvailability(
+        categoryId,
+      );
+      return Right(roster);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

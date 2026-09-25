@@ -1,10 +1,12 @@
+import 'dart:developer';
+
 import 'package:cultura_club/core/enums/activity_enums.dart';
 import 'package:cultura_club/core/enums/player_enums.dart';
+import 'package:cultura_club/core/errors/failures.dart';
 import 'package:cultura_club/core/presentation/widgets/exports.dart';
-import 'package:cultura_club/core/utils/player_grouping_utils.dart';
-import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
-import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
+import 'package:cultura_club/features/datebook/domain/entities/roster_player_for_activity_entity.dart';
+import 'package:cultura_club/features/datebook/presentation/controllers/activity_roster_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
 import 'package:cultura_club/features/datebook/presentation/providers/datebook_providers.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
@@ -87,6 +89,67 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
     );
   }
 
+  Set<String> _buildEligiblePlayerIds(
+    List<RosterPlayerForActivityEntity> roster,
+    ActivityTipo tipo,
+  ) {
+    switch (tipo) {
+      case ActivityTipo.partido:
+        return roster
+            .where((player) => player.canPlay)
+            .map((player) => player.userId)
+            .toSet();
+      case ActivityTipo.entrenamiento:
+        return roster
+            .where((player) => player.canTrain)
+            .map((player) => player.userId)
+            .toSet();
+      case ActivityTipo.evento:
+        return roster.map((player) => player.userId).toSet();
+    }
+  }
+
+  void _syncSelectionWithActivityType(
+    List<RosterPlayerForActivityEntity> roster,
+    ActivityTipo tipo,
+  ) {
+    if (tipo == ActivityTipo.evento) return;
+
+    final eligibleIds = _buildEligiblePlayerIds(roster, tipo);
+    final toRemove = _selectedPlayerIds
+        .where((playerId) => !eligibleIds.contains(playerId))
+        .toList();
+
+    if (toRemove.isEmpty) return;
+
+    setState(() {
+      _selectedPlayerIds.removeAll(toRemove);
+    });
+
+    if (!mounted) return;
+    AppSnackBar.show(
+      context,
+      AppSnackBarType.info,
+      'Se quitaron jugadores que no estan disponibles para este tipo de actividad.',
+    );
+  }
+
+  String _buildCreateActivityErrorMessage(Failure failure) {
+    final normalized = '${failure.code ?? ''} ${failure.message}'.toUpperCase();
+
+    if (normalized.contains('ROSTER_CONTAINS_UNAVAILABLE_PLAYERS') ||
+        normalized.contains('PLAYER_NOT_AVAILABLE_FOR_MATCH')) {
+      return 'Uno o mas jugadores seleccionados ya no estan disponibles para este partido. Revisa la convocatoria e intenta nuevamente.';
+    }
+
+    if (normalized.contains('ROSTER_CONTAINS_UNAVAILABLE_TRAINING_PLAYERS') ||
+        normalized.contains('PLAYER_NOT_AVAILABLE_FOR_TRAINING')) {
+      return 'Uno o mas jugadores ya no estan disponibles para entrenar. Revisa la convocatoria e intenta nuevamente.';
+    }
+
+    return 'Error al crear la actividad: ${failure.message}';
+  }
+
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
     final date = await showDatePicker(
@@ -163,10 +226,18 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
 
     result.fold(
       (failure) {
+        if (!_isEditing) {
+          log(
+            'Create activity failure: code=${failure.code}, message=${failure.message}',
+          );
+        }
+
         AppSnackBar.show(
           context,
           AppSnackBarType.error,
-          'Error al ${_isEditing ? "editar" : "crear"} la actividad: ${failure.message}',
+          _isEditing
+              ? 'Error al editar la actividad: ${failure.message}'
+              : _buildCreateActivityErrorMessage(failure),
         );
       },
       (_) {
@@ -184,6 +255,14 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<List<RosterPlayerForActivityEntity>>>(
+      activityRosterControllerProvider(widget.categoriaId),
+      (_, next) {
+        if (_isEditing || !next.hasValue) return;
+        _syncSelectionWithActivityType(next.requireValue, _tipo);
+      },
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Actividad' : 'Nueva Actividad'),
@@ -205,7 +284,21 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
                   )
                   .toList(),
               onChanged: (value) {
-                if (value != null) setState(() => _tipo = value);
+                if (value == null) return;
+
+                setState(() => _tipo = value);
+
+                if (!_isEditing) {
+                  final rosterState = ref.read(
+                    activityRosterControllerProvider(widget.categoriaId),
+                  );
+                  if (rosterState.hasValue) {
+                    _syncSelectionWithActivityType(
+                      rosterState.requireValue,
+                      value,
+                    );
+                  }
+                }
               },
             ),
             const SizedBox(height: 16),
@@ -251,6 +344,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
               const SizedBox(height: 8),
               _RosterPicker(
                 categoriaId: widget.categoriaId,
+                activityType: _tipo,
                 selectedPlayerIds: _selectedPlayerIds,
                 onChanged: (ids) => setState(() {
                   _selectedPlayerIds
@@ -275,27 +369,90 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
 
 class _RosterPicker extends ConsumerWidget {
   final String categoriaId;
+  final ActivityTipo activityType;
   final Set<String> selectedPlayerIds;
   final ValueChanged<Set<String>> onChanged;
 
   const _RosterPicker({
     required this.categoriaId,
+    required this.activityType,
     required this.selectedPlayerIds,
     required this.onChanged,
   });
 
+  bool _isSelectable(RosterPlayerForActivityEntity player) {
+    switch (activityType) {
+      case ActivityTipo.partido:
+        return player.canPlay;
+      case ActivityTipo.entrenamiento:
+        return player.canTrain;
+      case ActivityTipo.evento:
+        return true;
+    }
+  }
+
+  Set<String> _eligiblePlayerIds(List<RosterPlayerForActivityEntity> roster) {
+    return roster.where(_isSelectable).map((player) => player.userId).toSet();
+  }
+
+  Map<SectorCancha, List<RosterPlayerForActivityEntity>> _groupBySector(
+    List<RosterPlayerForActivityEntity> roster,
+  ) {
+    final grouped = <SectorCancha, List<RosterPlayerForActivityEntity>>{
+      for (final sector in SectorCancha.values)
+        sector: <RosterPlayerForActivityEntity>[],
+    };
+
+    for (final player in roster) {
+      grouped[player.sectorCancha]!.add(player);
+    }
+
+    return grouped;
+  }
+
+  String? _availabilityMessage(RosterPlayerForActivityEntity player) {
+    switch (activityType) {
+      case ActivityTipo.partido:
+        if (player.canPlay) return null;
+        return player.hasRecoveringInjury
+            ? 'No disponible para jugar. En recuperacion.'
+            : 'No disponible para jugar';
+      case ActivityTipo.entrenamiento:
+        if (player.canTrain) return null;
+        return 'No disponible para entrenar';
+      case ActivityTipo.evento:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rosterState = ref.watch(rosterControllerProvider(categoriaId));
+    final rosterState = ref.watch(
+      activityRosterControllerProvider(categoriaId),
+    );
 
     return rosterState.when(
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: 16.0),
         child: Center(child: CircularProgressIndicator(color: Colors.red)),
       ),
-      error: (error, stack) => Text(
-        'Error al cargar el plantel: $error',
-        style: const TextStyle(color: Colors.red),
+      error: (error, stack) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Error al cargar el plantel: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              ref
+                  .read(activityRosterControllerProvider(categoriaId).notifier)
+                  .retry();
+            },
+            child: const Text('Reintentar'),
+          ),
+        ],
       ),
       data: (roster) {
         if (roster.isEmpty) {
@@ -305,12 +462,19 @@ class _RosterPicker extends ConsumerWidget {
           );
         }
 
-        final allSelected = selectedPlayerIds.length == roster.length;
-        final grouped = PlayerGroupingUtils.groupPlayersBySector(roster);
+        final eligibleIds = _eligiblePlayerIds(roster);
+
+        final allSelected =
+            eligibleIds.isNotEmpty &&
+            eligibleIds.every(selectedPlayerIds.contains);
+
+        final grouped = _groupBySector(roster);
         final nonEmptyGroups = grouped.entries
             .where(
-              (MapEntry<SectorCancha, List<PlayerProfileEntity>> entry) =>
-                  entry.value.isNotEmpty,
+              (
+                MapEntry<SectorCancha, List<RosterPlayerForActivityEntity>>
+                entry,
+              ) => entry.value.isNotEmpty,
             )
             .toList();
 
@@ -330,19 +494,17 @@ class _RosterPicker extends ConsumerWidget {
                 activeColor: Colors.red[900],
                 value: allSelected,
                 onChanged: (checked) {
-                  onChanged(
-                    checked == true ? roster.map((p) => p.userId).toSet() : {},
-                  );
+                  onChanged(checked == true ? eligibleIds : <String>{});
                 },
               ),
             ),
             const SizedBox(height: 16),
             // Cards por sector
             ...nonEmptyGroups.map((
-              MapEntry<SectorCancha, List<PlayerProfileEntity>> entry,
+              MapEntry<SectorCancha, List<RosterPlayerForActivityEntity>> entry,
             ) {
               final SectorCancha sector = entry.key;
-              final List<PlayerProfileEntity> players = entry.value;
+              final List<RosterPlayerForActivityEntity> players = entry.value;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -366,7 +528,13 @@ class _RosterPicker extends ConsumerWidget {
                         ),
                       ),
                       const Divider(height: 1),
-                      ...players.map((PlayerProfileEntity player) {
+                      ...players.map((RosterPlayerForActivityEntity player) {
+                        final isSelectable = _isSelectable(player);
+                        final availabilityMessage = _availabilityMessage(
+                          player,
+                        );
+                        final availabilityColor = Colors.orange[800];
+
                         return CheckboxListTile(
                           title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,19 +576,34 @@ class _RosterPicker extends ConsumerWidget {
                                     )
                                     .toList(),
                               ),
+                              if (availabilityMessage != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  availabilityMessage,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: availabilityColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                           activeColor: Colors.red[900],
                           value: selectedPlayerIds.contains(player.userId),
-                          onChanged: (checked) {
-                            final updated = Set<String>.from(selectedPlayerIds);
-                            if (checked == true) {
-                              updated.add(player.userId);
-                            } else {
-                              updated.remove(player.userId);
-                            }
-                            onChanged(updated);
-                          },
+                          onChanged: isSelectable
+                              ? (checked) {
+                                  final updated = Set<String>.from(
+                                    selectedPlayerIds,
+                                  );
+                                  if (checked == true) {
+                                    updated.add(player.userId);
+                                  } else {
+                                    updated.remove(player.userId);
+                                  }
+                                  onChanged(updated);
+                                }
+                              : null,
                         );
                       }),
                     ],

@@ -1,6 +1,7 @@
 import 'package:cultura_club/core/errors/failures.dart';
 import 'package:fpdart/fpdart.dart';
 import '../entities/activity_entity.dart';
+import '../entities/roster_player_for_activity_entity.dart';
 
 abstract class DatebookRepository {
   Future<Either<Failure, List<ActivityEntity>>> getActivitiesByCategory(
@@ -32,4 +33,6 @@ abstract class DatebookRepository {
   Future<Either<Failure, List<ActivityEntity>>> getActivitiesForPlayer(
     String jugadorId,
   );
+  Future<Either<Failure, List<RosterPlayerForActivityEntity>>>
+  getRosterWithAvailability(String categoryId);
 }

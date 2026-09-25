@@ -348,3 +348,54 @@ final class GetActivitiesForPlayerUseCaseProvider
 
 String _$getActivitiesForPlayerUseCaseHash() =>
     r'2076f6e5be2e4d7256998e519ff77a1c5cc1e9d0';
+
+@ProviderFor(getRosterWithAvailabilityUseCase)
+final getRosterWithAvailabilityUseCaseProvider =
+    GetRosterWithAvailabilityUseCaseProvider._();
+
+final class GetRosterWithAvailabilityUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetRosterWithAvailabilityUseCase,
+          GetRosterWithAvailabilityUseCase,
+          GetRosterWithAvailabilityUseCase
+        >
+    with $Provider<GetRosterWithAvailabilityUseCase> {
+  GetRosterWithAvailabilityUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getRosterWithAvailabilityUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getRosterWithAvailabilityUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetRosterWithAvailabilityUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetRosterWithAvailabilityUseCase create(Ref ref) {
+    return getRosterWithAvailabilityUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetRosterWithAvailabilityUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetRosterWithAvailabilityUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$getRosterWithAvailabilityUseCaseHash() =>
+    r'34b48c2a6c4a5723d64ad71c1faa84dde5bb7c14';

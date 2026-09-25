@@ -8,6 +8,7 @@ import '../../domain/usecases/respond_to_citation_usecase.dart';
 import '../../domain/usecases/create_activity_usecase.dart';
 import '../../domain/usecases/update_activity_usecase.dart';
 import '../../domain/usecases/get_activities_for_player_usecase.dart';
+import '../../domain/usecases/get_roster_with_availability_usecase.dart';
 
 part 'datebook_providers.g.dart';
 
@@ -51,4 +52,10 @@ UpdateActivityUseCase updateActivityUseCase(Ref ref) {
 GetActivitiesForPlayerUseCase getActivitiesForPlayerUseCase(Ref ref) {
   final repository = ref.watch(datebookRepositoryProvider);
   return GetActivitiesForPlayerUseCase(repository);
+}
+
+@riverpod
+GetRosterWithAvailabilityUseCase getRosterWithAvailabilityUseCase(Ref ref) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return GetRosterWithAvailabilityUseCase(repository);
 }
