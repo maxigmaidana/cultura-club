@@ -399,3 +399,160 @@ final class GetRosterWithAvailabilityUseCaseProvider
 
 String _$getRosterWithAvailabilityUseCaseHash() =>
     r'34b48c2a6c4a5723d64ad71c1faa84dde5bb7c14';
+
+@ProviderFor(getCoachCommitmentsWithAvailabilityUseCase)
+final getCoachCommitmentsWithAvailabilityUseCaseProvider =
+    GetCoachCommitmentsWithAvailabilityUseCaseProvider._();
+
+final class GetCoachCommitmentsWithAvailabilityUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetCoachCommitmentsWithAvailabilityUseCase,
+          GetCoachCommitmentsWithAvailabilityUseCase,
+          GetCoachCommitmentsWithAvailabilityUseCase
+        >
+    with $Provider<GetCoachCommitmentsWithAvailabilityUseCase> {
+  GetCoachCommitmentsWithAvailabilityUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getCoachCommitmentsWithAvailabilityUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$getCoachCommitmentsWithAvailabilityUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetCoachCommitmentsWithAvailabilityUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetCoachCommitmentsWithAvailabilityUseCase create(Ref ref) {
+    return getCoachCommitmentsWithAvailabilityUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetCoachCommitmentsWithAvailabilityUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<GetCoachCommitmentsWithAvailabilityUseCase>(value),
+    );
+  }
+}
+
+String _$getCoachCommitmentsWithAvailabilityUseCaseHash() =>
+    r'a2e5a0c3bee3af35ac43cc1c13f019b014ebbca3';
+
+@ProviderFor(getActivityCitationsWithAvailabilityUseCase)
+final getActivityCitationsWithAvailabilityUseCaseProvider =
+    GetActivityCitationsWithAvailabilityUseCaseProvider._();
+
+final class GetActivityCitationsWithAvailabilityUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetActivityCitationsWithAvailabilityUseCase,
+          GetActivityCitationsWithAvailabilityUseCase,
+          GetActivityCitationsWithAvailabilityUseCase
+        >
+    with $Provider<GetActivityCitationsWithAvailabilityUseCase> {
+  GetActivityCitationsWithAvailabilityUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getActivityCitationsWithAvailabilityUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$getActivityCitationsWithAvailabilityUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetActivityCitationsWithAvailabilityUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetActivityCitationsWithAvailabilityUseCase create(Ref ref) {
+    return getActivityCitationsWithAvailabilityUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(
+    GetActivityCitationsWithAvailabilityUseCase value,
+  ) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<GetActivityCitationsWithAvailabilityUseCase>(
+            value,
+          ),
+    );
+  }
+}
+
+String _$getActivityCitationsWithAvailabilityUseCaseHash() =>
+    r'ea7eb6dcd84a5a686fbd3a516e4a08893ffb5e5a';
+
+@ProviderFor(acknowledgeActivityAvailabilityUseCase)
+final acknowledgeActivityAvailabilityUseCaseProvider =
+    AcknowledgeActivityAvailabilityUseCaseProvider._();
+
+final class AcknowledgeActivityAvailabilityUseCaseProvider
+    extends
+        $FunctionalProvider<
+          AcknowledgeActivityAvailabilityUseCase,
+          AcknowledgeActivityAvailabilityUseCase,
+          AcknowledgeActivityAvailabilityUseCase
+        >
+    with $Provider<AcknowledgeActivityAvailabilityUseCase> {
+  AcknowledgeActivityAvailabilityUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'acknowledgeActivityAvailabilityUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$acknowledgeActivityAvailabilityUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AcknowledgeActivityAvailabilityUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AcknowledgeActivityAvailabilityUseCase create(Ref ref) {
+    return acknowledgeActivityAvailabilityUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AcknowledgeActivityAvailabilityUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<AcknowledgeActivityAvailabilityUseCase>(value),
+    );
+  }
+}
+
+String _$acknowledgeActivityAvailabilityUseCaseHash() =>
+    r'7058110cb1e53deed0191f39c47c5ecd0e95726e';

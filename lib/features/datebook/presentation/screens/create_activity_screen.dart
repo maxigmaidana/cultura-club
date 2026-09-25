@@ -7,6 +7,7 @@ import 'package:cultura_club/core/presentation/widgets/exports.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/domain/entities/roster_player_for_activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/activity_roster_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/controllers/coach_commitments_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
 import 'package:cultura_club/features/datebook/presentation/providers/datebook_providers.dart';
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
@@ -243,6 +244,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
       (_) {
         // Se refetchea recién cuando algo vuelva a mirar la lista de esta categoría
         ref.invalidate(datebookProvider(widget.categoriaId));
+        ref.invalidate(coachCommitmentsControllerProvider);
         AppSnackBar.show(
           context,
           AppSnackBarType.success,

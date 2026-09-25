@@ -9,6 +9,9 @@ import '../../domain/usecases/create_activity_usecase.dart';
 import '../../domain/usecases/update_activity_usecase.dart';
 import '../../domain/usecases/get_activities_for_player_usecase.dart';
 import '../../domain/usecases/get_roster_with_availability_usecase.dart';
+import '../../domain/usecases/get_coach_commitments_with_availability_usecase.dart';
+import '../../domain/usecases/get_activity_citations_with_availability_usecase.dart';
+import '../../domain/usecases/acknowledge_activity_availability_usecase.dart';
 
 part 'datebook_providers.g.dart';
 
@@ -58,4 +61,26 @@ GetActivitiesForPlayerUseCase getActivitiesForPlayerUseCase(Ref ref) {
 GetRosterWithAvailabilityUseCase getRosterWithAvailabilityUseCase(Ref ref) {
   final repository = ref.watch(datebookRepositoryProvider);
   return GetRosterWithAvailabilityUseCase(repository);
+}
+
+@riverpod
+GetCoachCommitmentsWithAvailabilityUseCase
+getCoachCommitmentsWithAvailabilityUseCase(Ref ref) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return GetCoachCommitmentsWithAvailabilityUseCase(repository);
+}
+
+@riverpod
+GetActivityCitationsWithAvailabilityUseCase
+getActivityCitationsWithAvailabilityUseCase(Ref ref) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return GetActivityCitationsWithAvailabilityUseCase(repository);
+}
+
+@riverpod
+AcknowledgeActivityAvailabilityUseCase acknowledgeActivityAvailabilityUseCase(
+  Ref ref,
+) {
+  final repository = ref.watch(datebookRepositoryProvider);
+  return AcknowledgeActivityAvailabilityUseCase(repository);
 }

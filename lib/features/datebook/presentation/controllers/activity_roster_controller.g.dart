@@ -56,7 +56,7 @@ final class ActivityRosterControllerProvider
 }
 
 String _$activityRosterControllerHash() =>
-    r'c69d95fe9cde9e6feed747346babf90e24d77dfa';
+    r'a536d8188317ee1b68d1b12e9bc250058c1013e1';
 
 final class ActivityRosterControllerFamily extends $Family
     with

@@ -80,7 +80,8 @@ final GoRouter appRouter = GoRouter(
       path: '/datebook/:categoriaId/activity/:activityId/dashboard',
       builder: (context, state) => ActivityDashboardScreen(
         categoriaId: state.pathParameters['categoriaId']!,
-        activity: state.extra as ActivityEntity,
+        activityId: state.pathParameters['activityId']!,
+        initialActivity: state.extra as ActivityEntity?,
       ),
     ),
     GoRoute(

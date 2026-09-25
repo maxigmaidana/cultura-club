@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/activity_citation_availability_model.dart';
 import '../models/activity_model.dart';
+import '../models/coach_commitment_model.dart';
 import '../models/roster_player_for_activity_model.dart';
 
 abstract class DatebookRemoteDataSource {
@@ -34,6 +36,13 @@ abstract class DatebookRemoteDataSource {
   Future<List<RosterPlayerForActivityModel>> getRosterWithAvailability(
     String categoryId,
   );
+  Future<List<CoachCommitmentModel>> getCoachCommitmentsWithAvailability({
+    required DateTime from,
+    required int limit,
+  });
+  Future<List<ActivityCitationAvailabilityModel>>
+  getActivityCitationsWithAvailability(String activityId);
+  Future<DateTime> acknowledgeActivityAvailability(String activityId);
 }
 
 class DatebookRemoteDataSourceImpl implements DatebookRemoteDataSource {
@@ -203,6 +212,102 @@ class DatebookRemoteDataSourceImpl implements DatebookRemoteDataSource {
     } catch (e) {
       log('❌ Error in getRosterWithAvailability for $categoryId: $e');
       throw Exception('Error al obtener plantel con disponibilidad: $e');
+    }
+  }
+
+  @override
+  Future<List<CoachCommitmentModel>> getCoachCommitmentsWithAvailability({
+    required DateTime from,
+    required int limit,
+  }) async {
+    try {
+      log('📡 Fetching coach commitments from $from with limit $limit');
+      final response = await supabase.rpc(
+        'get_coach_commitments_with_availability',
+        params: {'p_from': from.toUtc().toIso8601String(), 'p_limit': limit},
+      );
+
+      if (response is! List) {
+        throw Exception('Respuesta inválida para compromisos del entrenador');
+      }
+
+      return response
+          .map(
+            (item) =>
+                CoachCommitmentModel.fromJson(item as Map<String, dynamic>),
+          )
+          .toList();
+    } on PostgrestException catch (e) {
+      log(
+        '❌ Postgrest error in getCoachCommitmentsWithAvailability: ${e.message} (code: ${e.code})',
+      );
+      rethrow;
+    } catch (e) {
+      log('❌ Error in getCoachCommitmentsWithAvailability: $e');
+      throw Exception('Error al obtener compromisos del entrenador: $e');
+    }
+  }
+
+  @override
+  Future<List<ActivityCitationAvailabilityModel>>
+  getActivityCitationsWithAvailability(String activityId) async {
+    try {
+      log('📡 Fetching activity citations with availability: $activityId');
+      final response = await supabase.rpc(
+        'get_activity_citations_with_availability',
+        params: {'p_activity_id': activityId},
+      );
+
+      if (response is! List) {
+        throw Exception(
+          'Respuesta inválida para citaciones con disponibilidad',
+        );
+      }
+
+      return response
+          .map(
+            (item) => ActivityCitationAvailabilityModel.fromJson(
+              item as Map<String, dynamic>,
+            ),
+          )
+          .toList();
+    } on PostgrestException catch (e) {
+      log(
+        '❌ Postgrest error in getActivityCitationsWithAvailability: ${e.message} (code: ${e.code})',
+      );
+      rethrow;
+    } catch (e) {
+      log('❌ Error in getActivityCitationsWithAvailability: $e');
+      throw Exception('Error al obtener citaciones con disponibilidad: $e');
+    }
+  }
+
+  @override
+  Future<DateTime> acknowledgeActivityAvailability(String activityId) async {
+    try {
+      log('📡 Acknowledging availability for activity: $activityId');
+      final response = await supabase.rpc(
+        'acknowledge_activity_availability',
+        params: {'p_activity_id': activityId},
+      );
+
+      if (response is String) {
+        return DateTime.parse(response);
+      }
+
+      if (response is List && response.isNotEmpty && response.first is String) {
+        return DateTime.parse(response.first as String);
+      }
+
+      throw Exception('Respuesta inválida al mantener convocatoria');
+    } on PostgrestException catch (e) {
+      log(
+        '❌ Postgrest error in acknowledgeActivityAvailability: ${e.message} (code: ${e.code})',
+      );
+      rethrow;
+    } catch (e) {
+      log('❌ Error in acknowledgeActivityAvailability: $e');
+      throw Exception('Error al mantener convocatoria: $e');
     }
   }
 }

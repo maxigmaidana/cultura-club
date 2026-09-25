@@ -2,8 +2,6 @@ import 'package:cultura_club/features/coach/presentation/controller/roster_contr
 import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
 import 'package:cultura_club/core/enums/player_enums.dart';
 import 'package:cultura_club/core/utils/player_grouping_utils.dart';
-import 'package:cultura_club/features/datebook/presentation/screens/create_activity_screen.dart';
-import 'package:cultura_club/features/datebook/presentation/screens/datebook_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,15 +30,6 @@ class CategoryPlayersScreen extends ConsumerWidget {
         title: Text('Plantel - $categoryName'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month),
-            tooltip: 'Ver actividades programadas',
-            onPressed: () {
-              GoRouter.of(context).push(DatebookScreen.buildPath(categoryId));
-            },
-          ),
-        ],
       ),
       // Manejamos los 3 estados: cargando, error, o datos listos
       body: rosterState.when(
@@ -154,15 +143,6 @@ class CategoryPlayersScreen extends ConsumerWidget {
               ],
             ],
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.red[900],
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.event_note),
-        label: const Text('Agendar'),
-        onPressed: () {
-          GoRouter.of(context).push(CreateActivityScreen.buildPath(categoryId));
         },
       ),
     );

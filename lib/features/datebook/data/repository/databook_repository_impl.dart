@@ -1,4 +1,6 @@
 import 'package:cultura_club/core/errors/failures.dart';
+import 'package:cultura_club/features/datebook/domain/entities/activity_citation_availability_entity.dart';
+import 'package:cultura_club/features/datebook/domain/entities/coach_commitment_entity.dart';
 import 'package:cultura_club/features/datebook/domain/entities/roster_player_for_activity_entity.dart';
 import 'package:cultura_club/features/datebook/domain/repository/datebook_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -119,6 +121,52 @@ class DatebookRepositoryImpl implements DatebookRepository {
         categoryId,
       );
       return Right(roster);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CoachCommitmentEntity>>>
+  getCoachCommitmentsWithAvailability({
+    required DateTime from,
+    required int limit,
+  }) async {
+    try {
+      final commitments = await remoteDataSource
+          .getCoachCommitmentsWithAvailability(from: from, limit: limit);
+      return Right(commitments);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ActivityCitationAvailabilityEntity>>>
+  getActivityCitationsWithAvailability(String activityId) async {
+    try {
+      final citations = await remoteDataSource
+          .getActivityCitationsWithAvailability(activityId);
+      return Right(citations);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, DateTime>> acknowledgeActivityAvailability(
+    String activityId,
+  ) async {
+    try {
+      final acknowledgedAt = await remoteDataSource
+          .acknowledgeActivityAvailability(activityId);
+      return Right(acknowledgedAt);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

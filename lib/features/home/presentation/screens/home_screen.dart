@@ -1,6 +1,8 @@
 import 'package:cultura_club/core/presentation/widgets/exports.dart';
 import 'package:cultura_club/features/coach/presentation/controller/coach_categories_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/controllers/coach_commitments_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/my_agenda_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/screens/coach_commitments_screen.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/my_agenda_screen.dart';
 import 'package:cultura_club/features/evaluation/presentation/controllers/player_dashboard_controller.dart';
 import 'package:cultura_club/features/gamification/presentation/providers/gamification_providers.dart';
@@ -47,6 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final List<Widget> screens = [
       TabInicioGenerico(user: user),
       CoachDashboardScreen(user: user),
+      const CoachCommitmentsScreen(),
       const SettingsScreen(),
     ];
 
@@ -71,6 +74,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             });
           },
         ),
+      if (isCoach)
+        AppBottomNavItem(
+          icon: const Icon(Icons.calendar_month),
+          label: '',
+          onTap: () {
+            setState(() {
+              _currentIndex = 2;
+            });
+          },
+        ),
       if (!isCoach)
         AppBottomNavItem(
           icon: const Icon(Icons.event_note),
@@ -86,7 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         label: '',
         onTap: () {
           setState(() {
-            _currentIndex = isCoach ? 2 : 2;
+            _currentIndex = isCoach ? 3 : 2;
           });
         },
       ),
@@ -97,6 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onRefresh: () async {
         if (isCoach) {
           ref.invalidate(coachCategoriesControllerProvider);
+          ref.invalidate(coachCommitmentsControllerProvider);
         } else {
           ref.invalidate(playerDashboardControllerProvider);
           ref.invalidate(pendingTriviasProvider(user.id));

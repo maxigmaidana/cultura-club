@@ -1,6 +1,8 @@
 import 'package:cultura_club/core/errors/failures.dart';
 import 'package:fpdart/fpdart.dart';
 import '../entities/activity_entity.dart';
+import '../entities/activity_citation_availability_entity.dart';
+import '../entities/coach_commitment_entity.dart';
 import '../entities/roster_player_for_activity_entity.dart';
 
 abstract class DatebookRepository {
@@ -35,4 +37,14 @@ abstract class DatebookRepository {
   );
   Future<Either<Failure, List<RosterPlayerForActivityEntity>>>
   getRosterWithAvailability(String categoryId);
+  Future<Either<Failure, List<CoachCommitmentEntity>>>
+  getCoachCommitmentsWithAvailability({
+    required DateTime from,
+    required int limit,
+  });
+  Future<Either<Failure, List<ActivityCitationAvailabilityEntity>>>
+  getActivityCitationsWithAvailability(String activityId);
+  Future<Either<Failure, DateTime>> acknowledgeActivityAvailability(
+    String activityId,
+  );
 }
