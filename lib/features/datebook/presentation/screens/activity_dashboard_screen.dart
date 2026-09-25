@@ -1,14 +1,18 @@
+import 'dart:developer';
+
 import 'package:cultura_club/core/enums/activity_enums.dart';
-import 'package:cultura_club/core/presentation/widgets/exports.dart';
 import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_citation_availability_entity.dart';
+import 'package:cultura_club/features/datebook/domain/entities/coach_commitment_entity.dart';
 import 'package:cultura_club/features/datebook/domain/entities/citation_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/controllers/activity_citations_availability_controller.dart';
+import 'package:cultura_club/features/datebook/presentation/controllers/coach_commitments_controller.dart';
 import 'package:cultura_club/features/datebook/presentation/notifier/datebook_notifier.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/create_activity_screen.dart';
 import 'package:cultura_club/features/datebook/presentation/utils/date_formatter.dart';
+import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,6 +47,7 @@ class ActivityDashboardScreen extends ConsumerWidget {
     final availabilityState = ref.watch(
       activityCitationsAvailabilityControllerProvider(activityId),
     );
+    final commitmentsState = ref.watch(coachCommitmentsControllerProvider);
     // Tomamos la versión más reciente de la lista (se refetchea al invalidar tras editar)
     final activitiesState = ref.watch(datebookProvider(categoriaId));
     final matches =
@@ -156,23 +161,59 @@ class ActivityDashboardScreen extends ConsumerWidget {
                           .toList() ??
                       const <ActivityCitationAvailabilityEntity>[];
 
-                  final requiresAttention = unavailablePlayers.isNotEmpty;
+                  CoachCommitmentEntity? currentCommitment;
+                  final commitments = commitmentsState.asData?.value;
+                  if (commitments != null) {
+                    for (final commitment in commitments) {
+                      if (commitment.activityId == activityId) {
+                        currentCommitment = commitment;
+                        break;
+                      }
+                    }
+                  }
+
+                  final commitmentUnavailableCount =
+                      currentCommitment?.unavailablePlayersCount;
+                  final commitmentRequiresAttention =
+                      currentCommitment?.requiresAttention;
+                  final commitmentAcknowledgedAt =
+                      currentCommitment?.acknowledgedAt;
+
+                  final effectiveUnavailableCount =
+                      commitmentUnavailableCount ?? unavailablePlayers.length;
+
+                  final bannerState = commitmentRequiresAttention == null
+                      ? _AvailabilityBannerState.none
+                      : commitmentUnavailableCount == 0
+                      ? _AvailabilityBannerState.none
+                      : commitmentRequiresAttention
+                      ? _AvailabilityBannerState.requiresAttention
+                      : _AvailabilityBannerState.reviewed;
+
+                  final reviewedMessage = commitmentAcknowledgedAt != null
+                      ? 'Decidiste mantener esta convocatoria.'
+                      : 'Esta convocatoria ya no requiere accion por ahora.';
+
+                  final banner = _AttentionBanner(
+                    state: bannerState,
+                    unavailableCount: effectiveUnavailableCount,
+                    reviewedMessage: reviewedMessage,
+                    onAcknowledge:
+                        bannerState ==
+                            _AvailabilityBannerState.requiresAttention
+                        ? () => _confirmAcknowledge(
+                            context,
+                            ref,
+                            categoriaId,
+                            activityId,
+                          )
+                        : null,
+                  );
 
                   return TabBarView(
                     children: [
                       _DashboardTabContent(
-                        warningBanner: _AttentionBanner(
-                          unavailableCount: unavailablePlayers.length,
-                          showAction: requiresAttention,
-                          onAcknowledge: requiresAttention
-                              ? () => _confirmAcknowledge(
-                                  context,
-                                  ref,
-                                  categoriaId,
-                                  activityId,
-                                )
-                              : null,
-                        ),
+                        warningBanner: banner,
                         child: _PlayerList(
                           citations: _citationsFor(
                             currentActivity,
@@ -187,18 +228,7 @@ class ActivityDashboardScreen extends ConsumerWidget {
                         ),
                       ),
                       _DashboardTabContent(
-                        warningBanner: _AttentionBanner(
-                          unavailableCount: unavailablePlayers.length,
-                          showAction: requiresAttention,
-                          onAcknowledge: requiresAttention
-                              ? () => _confirmAcknowledge(
-                                  context,
-                                  ref,
-                                  categoriaId,
-                                  activityId,
-                                )
-                              : null,
-                        ),
+                        warningBanner: banner,
                         child: _PlayerList(
                           citations: _citationsFor(
                             currentActivity,
@@ -213,18 +243,7 @@ class ActivityDashboardScreen extends ConsumerWidget {
                         ),
                       ),
                       _DashboardTabContent(
-                        warningBanner: _AttentionBanner(
-                          unavailableCount: unavailablePlayers.length,
-                          showAction: requiresAttention,
-                          onAcknowledge: requiresAttention
-                              ? () => _confirmAcknowledge(
-                                  context,
-                                  ref,
-                                  categoriaId,
-                                  activityId,
-                                )
-                              : null,
-                        ),
+                        warningBanner: banner,
                         child: _PlayerList(
                           citations: _citationsFor(
                             currentActivity,
@@ -289,17 +308,25 @@ class ActivityDashboardScreen extends ConsumerWidget {
           .acknowledgeAvailability(categoriaId: categoriaId);
 
       if (!context.mounted) return;
-      AppSnackBar.show(
-        context,
-        AppSnackBarType.success,
-        'Convocatoria marcada como revisada.',
+      GoRouter.of(context).go(
+        HomeScreen.buildPath(
+          tab: HomeScreen.tabCommitments,
+          toast: HomeScreen.toastAcknowledgeSuccess,
+        ),
       );
-    } catch (_) {
+    } catch (error, stack) {
+      log(
+        'Acknowledge availability failed for $activityId: $error',
+        error: error,
+        stackTrace: stack,
+      );
+
       if (!context.mounted) return;
-      AppSnackBar.show(
-        context,
-        AppSnackBarType.error,
-        'No se pudo registrar la revision de la convocatoria.',
+      GoRouter.of(context).go(
+        HomeScreen.buildPath(
+          tab: HomeScreen.tabCommitments,
+          toast: HomeScreen.toastAcknowledgeError,
+        ),
       );
     }
   }
@@ -326,51 +353,73 @@ class _DashboardTabContent extends StatelessWidget {
 }
 
 class _AttentionBanner extends StatelessWidget {
+  final _AvailabilityBannerState state;
   final int unavailableCount;
-  final bool showAction;
+  final String reviewedMessage;
   final VoidCallback? onAcknowledge;
 
   const _AttentionBanner({
+    required this.state,
     required this.unavailableCount,
-    required this.showAction,
+    required this.reviewedMessage,
     this.onAcknowledge,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (unavailableCount <= 0) return const SizedBox.shrink();
+    if (state == _AvailabilityBannerState.none || unavailableCount <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final isWarning = state == _AvailabilityBannerState.requiresAttention;
+    final background = isWarning ? Colors.orange[50] : Colors.blue[50];
+    final border = isWarning ? Colors.orange[200]! : Colors.blue[200]!;
+    final iconColor = isWarning ? Colors.orange[800] : Colors.blue[800];
+    final titleColor = isWarning ? Colors.orange[900] : Colors.blue[900];
+    final bodyColor = isWarning ? Colors.orange[900] : Colors.blue[900];
+    final icon = isWarning
+        ? Icons.warning_amber_rounded
+        : Icons.check_circle_outline;
+    final title = isWarning
+        ? 'Esta convocatoria requiere atencion'
+        : 'Convocatoria revisada';
+
+    final countText = isWarning
+        ? '$unavailableCount ${unavailableCount == 1 ? 'jugador ya no esta disponible para este compromiso.' : 'jugadores ya no estan disponibles para este compromiso.'}'
+        : '$unavailableCount ${unavailableCount == 1 ? 'jugador continua no disponible.' : 'jugadores continuan no disponibles.'}';
 
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(12).copyWith(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange[50],
+        color: background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.orange[200]!),
+        border: Border.all(color: border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange[800]),
+              Icon(icon, color: iconColor),
               const SizedBox(width: 8),
               Text(
-                'Esta convocatoria requiere atencion',
+                title,
                 style: TextStyle(
-                  color: Colors.orange[900],
+                  color: titleColor,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            '$unavailableCount ${unavailableCount == 1 ? 'jugador ya no esta disponible para este compromiso.' : 'jugadores ya no estan disponibles para este compromiso.'}',
-            style: TextStyle(color: Colors.orange[900]),
-          ),
-          if (showAction && onAcknowledge != null) ...[
+          Text(countText, style: TextStyle(color: bodyColor)),
+          if (!isWarning) ...[
+            const SizedBox(height: 4),
+            Text(reviewedMessage, style: TextStyle(color: bodyColor)),
+          ],
+          if (isWarning && onAcknowledge != null) ...[
             const SizedBox(height: 10),
             OutlinedButton(
               onPressed: onAcknowledge,
@@ -382,6 +431,8 @@ class _AttentionBanner extends StatelessWidget {
     );
   }
 }
+
+enum _AvailabilityBannerState { none, requiresAttention, reviewed }
 
 class _PlayerList extends StatelessWidget {
   final List<CitationEntity> citations;

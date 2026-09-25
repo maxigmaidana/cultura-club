@@ -17,9 +17,9 @@ class CoachCommitmentsScreen extends ConsumerWidget {
     final categoriesState = ref.read(coachCategoriesControllerProvider);
 
     if (categoriesState.isLoading) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cargando categorias...')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cargando categorias...')));
       return;
     }
 
@@ -89,9 +89,9 @@ class CoachCommitmentsScreen extends ConsumerWidget {
 
     if (selectedCategoryId == null || !context.mounted) return;
 
-    await GoRouter.of(context).push(
-      CreateActivityScreen.buildPath(selectedCategoryId),
-    );
+    await GoRouter.of(
+      context,
+    ).push(CreateActivityScreen.buildPath(selectedCategoryId));
 
     if (!context.mounted) return;
     ref.invalidate(coachCommitmentsControllerProvider);

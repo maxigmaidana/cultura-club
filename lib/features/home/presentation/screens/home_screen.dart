@@ -11,12 +11,27 @@ import 'package:cultura_club/features/settings/presentation/settings_screen.dart
 import 'package:cultura_club/features/user/presentation/providers/user_session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../coach/presentation/screens/coach_dashboard_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   static const String pathName = '/home';
+  static const String tabCommitments = 'commitments';
+  static const String toastAcknowledgeSuccess = 'ack_success';
+  static const String toastAcknowledgeError = 'ack_error';
+
+  static String buildPath({String? tab, String? toast}) {
+    final query = <String, String>{};
+    if (tab != null) query['tab'] = tab;
+    if (toast != null) query['toast'] = toast;
+
+    return Uri(
+      path: pathName,
+      queryParameters: query.isEmpty ? null : query,
+    ).toString();
+  }
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -24,6 +39,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
+  String? _lastHandledToast;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +54,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // 2. Determinamos si es entrenador para armar la UI dinámica
     final isCoach = user.role.isCoach;
+    final routeState = GoRouterState.of(context);
+    final requestedTab = routeState.uri.queryParameters['tab'];
+    final requestedToast = routeState.uri.queryParameters['toast'];
+
+    if (isCoach &&
+        requestedTab == HomeScreen.tabCommitments &&
+        _currentIndex != 2) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _currentIndex = 2);
+      });
+    }
+
+    if (requestedToast != null && requestedToast != _lastHandledToast) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        _lastHandledToast = requestedToast;
+        final isSuccess = requestedToast == HomeScreen.toastAcknowledgeSuccess;
+
+        AppSnackBar.show(
+          context,
+          isSuccess ? AppSnackBarType.success : AppSnackBarType.error,
+          isSuccess
+              ? 'Convocatoria mantenida correctamente.'
+              : 'No se pudo confirmar la convocatoria.',
+        );
+
+        GoRouter.of(
+          context,
+        ).go(HomeScreen.buildPath(tab: HomeScreen.tabCommitments));
+      });
+    }
 
     // 3. Definimos las pantallas del BottomNav
 

@@ -192,6 +192,48 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
     final currentUser = ref.read(userSessionProvider).value;
     if (currentUser == null) return;
 
+    var selectedPlayerIdsForSubmit = _selectedPlayerIds.toList();
+
+    if (!_isEditing) {
+      final rosterState = ref.read(
+        activityRosterControllerProvider(widget.categoriaId),
+      );
+
+      if (!rosterState.hasValue) {
+        AppSnackBar.show(
+          context,
+          AppSnackBarType.error,
+          'No se pudo verificar la disponibilidad del plantel. Intentá nuevamente.',
+        );
+        return;
+      }
+
+      final roster = rosterState.requireValue;
+      if (_tipo != ActivityTipo.evento) {
+        final eligibleIds = _buildEligiblePlayerIds(roster, _tipo);
+        final filteredIds = _selectedPlayerIds
+            .where((id) => eligibleIds.contains(id))
+            .toList();
+
+        final removedCount = _selectedPlayerIds.length - filteredIds.length;
+        if (removedCount > 0) {
+          setState(() {
+            _selectedPlayerIds
+              ..clear()
+              ..addAll(filteredIds);
+          });
+
+          AppSnackBar.show(
+            context,
+            AppSnackBarType.info,
+            'Se quitaron jugadores que ya no están disponibles para este tipo de actividad.',
+          );
+        }
+
+        selectedPlayerIdsForSubmit = filteredIds;
+      }
+    }
+
     setState(() => _isSubmitting = true);
 
     final titulo = _tituloController.text.trim();
@@ -219,7 +261,7 @@ class _CreateActivityScreenState extends ConsumerState<CreateActivityScreen> {
             fechaHora: _fechaHora!,
             lugar: lugar,
             indicaciones: indicaciones,
-            jugadorIds: _selectedPlayerIds.toList(),
+            jugadorIds: selectedPlayerIdsForSubmit,
           );
 
     if (!mounted) return;
