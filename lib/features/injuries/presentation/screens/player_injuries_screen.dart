@@ -29,6 +29,7 @@ class PlayerInjuriesScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _ErrorState(
           onRetry: () {
+            // ignore: unused_result
             ref.refresh(playerUnavailabilitiesProvider(playerId));
           },
         ),
@@ -42,8 +43,8 @@ class PlayerInjuriesScreen extends ConsumerWidget {
           final history = unavailabilities.where((u) => u.isClosed).toList();
 
           return RefreshIndicator(
-            onRefresh: () async {
-              await ref.refresh(
+            onRefresh: () {
+              return ref.refresh(
                 playerUnavailabilitiesProvider(playerId).future,
               );
             },

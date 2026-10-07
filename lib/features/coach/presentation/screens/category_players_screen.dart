@@ -9,12 +9,12 @@ import '../../../evaluation/presentation/screens/evaluation_form_screen.dart';
 
 class CategoryPlayersScreen extends ConsumerWidget {
   final String categoryId;
-  final String categoryName;
+  final String? categoryName;
 
   const CategoryPlayersScreen({
     super.key,
     required this.categoryId,
-    required this.categoryName,
+    this.categoryName,
   });
 
   static const String pathName = '/coach/category/:categoryId';
@@ -27,7 +27,7 @@ class CategoryPlayersScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Plantel - $categoryName'),
+        title: Text('Plantel - ${categoryName ?? 'Categoría'}'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
       ),

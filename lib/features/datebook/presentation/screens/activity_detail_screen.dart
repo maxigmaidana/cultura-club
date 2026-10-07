@@ -9,12 +9,12 @@ import 'package:go_router/go_router.dart';
 
 class ActivityDetailScreen extends ConsumerWidget {
   final String categoriaId;
-  final ActivityEntity activity;
+  final ActivityEntity? activity;
 
   const ActivityDetailScreen({
     super.key,
     required this.categoriaId,
-    required this.activity,
+    this.activity,
   });
 
   static String buildPath(String categoriaId, String activityId) =>
@@ -26,12 +26,12 @@ class ActivityDetailScreen extends ConsumerWidget {
     String estadoRespuesta,
   ) async {
     final userId = ref.read(userSessionProvider).value?.id;
-    if (userId == null) return;
+    if (userId == null || activity == null) return;
 
     await ref
         .read(citationControllerProvider.notifier)
         .respondToCitation(
-          actividadId: activity.id,
+          actividadId: activity!.id,
           jugadorId: userId,
           estadoRespuesta: estadoRespuesta,
           categoriaId: categoriaId,
@@ -80,6 +80,22 @@ class ActivityDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (activity == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Detalle de Actividad'),
+          backgroundColor: Colors.red[900],
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: Text(
+            'No se encontró información de la actividad.\nIntenta acceder desde la lista de actividades.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     final citationState = ref.watch(citationControllerProvider);
     final isSubmitting = citationState.isLoading;
 
@@ -140,7 +156,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
-                              _getTipoIcon(activity.tipo),
+                              _getTipoIcon(activity!.tipo),
                               color: Colors.blue[900],
                               size: 24,
                             ),
@@ -151,7 +167,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  ActivityTipo.fromString(activity.tipo).label,
+                                  ActivityTipo.fromString(activity!.tipo).label,
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontWeight: FontWeight.w500,
@@ -160,7 +176,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  activity.titulo,
+                                  activity!.titulo,
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -177,15 +193,15 @@ class ActivityDetailScreen extends ConsumerWidget {
                       _buildDetailInfoRow(
                         Icons.calendar_today,
                         'Fecha y hora',
-                        formatActivityDate(activity.fechaHora),
+                        formatActivityDate(activity!.fechaHora),
                       ),
-                      if (activity.lugar != null &&
-                          activity.lugar!.isNotEmpty) ...[
+                      if (activity!.lugar != null &&
+                          activity!.lugar!.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         _buildDetailInfoRow(
                           Icons.place,
                           'Lugar',
-                          activity.lugar!,
+                          activity!.lugar!,
                         ),
                       ],
                     ],
@@ -194,8 +210,8 @@ class ActivityDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               // Sección: Indicaciones
-              if (activity.indicaciones != null &&
-                  activity.indicaciones!.isNotEmpty) ...[
+              if (activity!.indicaciones != null &&
+                  activity!.indicaciones!.isNotEmpty) ...[
                 Text(
                   'Indicaciones',
                   style: TextStyle(
@@ -213,7 +229,7 @@ class ActivityDetailScreen extends ConsumerWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      activity.indicaciones!,
+                      activity!.indicaciones!,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black87,

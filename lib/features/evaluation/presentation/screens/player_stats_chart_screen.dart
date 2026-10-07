@@ -3,9 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class PlayerStatsChartScreen extends StatelessWidget {
-  final PlayerStatsEntity stats;
+  final PlayerStatsEntity? stats;
 
-  const PlayerStatsChartScreen({super.key, required this.stats});
+  const PlayerStatsChartScreen({super.key, this.stats});
 
   static const String pathName = '/player/stats-chart/:categoriaId';
   static String buildPath(String categoriaId) =>
@@ -13,9 +13,25 @@ class PlayerStatsChartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (stats == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Estadísticas'),
+          backgroundColor: Colors.red[900],
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: Text(
+            'No se encontraron estadísticas.\nIntenta acceder desde el perfil.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(stats.categoriaNombre ?? 'Estadísticas'),
+        title: Text(stats!.categoriaNombre ?? 'Estadísticas'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
       ),
@@ -159,12 +175,12 @@ class PlayerStatsChartScreen extends StatelessWidget {
                         ),
                       ),
                       barGroups: [
-                        _buildBarGroup(0, stats.velocidad.toDouble()),
-                        _buildBarGroup(1, stats.resistencia.toDouble()),
-                        _buildBarGroup(2, stats.tecnica.toDouble()),
-                        _buildBarGroup(3, stats.tactica.toDouble()),
-                        _buildBarGroup(4, stats.actitud.toDouble()),
-                        _buildBarGroup(5, stats.asistencia.toDouble()),
+                        _buildBarGroup(0, stats!.velocidad.toDouble()),
+                        _buildBarGroup(1, stats!.resistencia.toDouble()),
+                        _buildBarGroup(2, stats!.tecnica.toDouble()),
+                        _buildBarGroup(3, stats!.tactica.toDouble()),
+                        _buildBarGroup(4, stats!.actitud.toDouble()),
+                        _buildBarGroup(5, stats!.asistencia.toDouble()),
                       ],
                     ),
                   ),
@@ -179,12 +195,12 @@ class PlayerStatsChartScreen extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildStatRow('Velocidad', stats.velocidad),
-            _buildStatRow('Resistencia', stats.resistencia),
-            _buildStatRow('Técnica', stats.tecnica),
-            _buildStatRow('Táctica', stats.tactica),
-            _buildStatRow('Actitud', stats.actitud),
-            _buildStatRow('Asistencia', stats.asistencia),
+            _buildStatRow('Velocidad', stats!.velocidad),
+            _buildStatRow('Resistencia', stats!.resistencia),
+            _buildStatRow('Técnica', stats!.tecnica),
+            _buildStatRow('Táctica', stats!.tactica),
+            _buildStatRow('Actitud', stats!.actitud),
+            _buildStatRow('Asistencia', stats!.asistencia),
             const SizedBox(height: 32),
           ],
         ),
@@ -229,12 +245,13 @@ class PlayerStatsChartScreen extends StatelessWidget {
   }
 
   double _calculateAverage() {
-    return (stats.velocidad +
-            stats.resistencia +
-            stats.tecnica +
-            stats.tactica +
-            stats.actitud +
-            stats.asistencia) /
+    if (stats == null) return 0;
+    return (stats!.velocidad +
+            stats!.resistencia +
+            stats!.tecnica +
+            stats!.tactica +
+            stats!.actitud +
+            stats!.asistencia) /
         6;
   }
 

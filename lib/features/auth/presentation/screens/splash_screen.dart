@@ -21,21 +21,35 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Escuchamos los cambios en la sesión
-    ref.listen(userSessionProvider, (_, next) {
-      // Cuando la promesa asíncrona (build) se resuelve:
-      if (!next.isLoading) {
-        if (next.value != null) {
-          GoRouter.of(
-            context,
-          ).go(HomeScreen.pathName); // Hay token válido -> Home
-        } else {
-          GoRouter.of(
-            context,
-          ).go(LoginScreen.pathName); // No hay token -> Login
-        }
-      }
-    });
+    // Watch the current state (handles both initial resolved state and changes)
+    final userSessionAsync = ref.watch(userSessionProvider);
+
+    // Navigate when session state is resolved
+    userSessionAsync.when(
+      data: (user) {
+        // State is resolved - navigate immediately
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (user != null) {
+            GoRouter.of(
+              context,
+            ).go(HomeScreen.pathName); // Valid session -> Home
+          } else {
+            GoRouter.of(
+              context,
+            ).go(LoginScreen.pathName); // No session -> Login
+          }
+        });
+      },
+      loading: () {
+        // Still loading - show splash screen
+      },
+      error: (error, stackTrace) {
+        // Error during session restore - navigate to login
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          GoRouter.of(context).go(LoginScreen.pathName);
+        });
+      },
+    );
 
     final Color primaryColor = Color(int.parse(primaryColorHex));
 

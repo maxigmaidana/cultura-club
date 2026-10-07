@@ -9,7 +9,7 @@ import '../../domain/entities/player_stats_entity.dart';
 
 class EvaluationFormScreen extends ConsumerStatefulWidget {
   final String playerId;
-  final String playerName;
+  final String? playerName;
   final String categoryId;
 
   const EvaluationFormScreen({
@@ -167,7 +167,7 @@ class _EvaluationFormScreenState extends ConsumerState<EvaluationFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Evaluar a ${widget.playerName}'),
+        title: Text('Evaluar a ${widget.playerName ?? 'Jugador'}'),
         backgroundColor: Colors.red[900],
         foregroundColor: Colors.white,
       ),

@@ -76,7 +76,7 @@ final GoRouter appRouter = GoRouter(
       path: '/datebook/:categoriaId/activity/:activityId',
       builder: (context, state) => ActivityDetailScreen(
         categoriaId: state.pathParameters['categoriaId']!,
-        activity: state.extra as ActivityEntity,
+        activity: state.extra as ActivityEntity?,
       ),
     ),
     GoRoute(
@@ -97,14 +97,14 @@ final GoRouter appRouter = GoRouter(
       path: '/datebook/:categoriaId/activity/:activityId/edit',
       builder: (context, state) => CreateActivityScreen(
         categoriaId: state.pathParameters['categoriaId']!,
-        existingActivity: state.extra as ActivityEntity,
+        existingActivity: state.extra as ActivityEntity?,
       ),
     ),
     GoRoute(
       path: CategoryPlayersScreen.pathName,
       builder: (context, state) => CategoryPlayersScreen(
         categoryId: state.pathParameters['categoryId']!,
-        categoryName: state.extra as String,
+        categoryName: state.extra as String?,
       ),
     ),
     GoRoute(
@@ -112,13 +112,13 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => EvaluationFormScreen(
         playerId: state.pathParameters['playerId']!,
         categoryId: state.pathParameters['categoryId']!,
-        playerName: state.extra as String,
+        playerName: state.extra as String?,
       ),
     ),
     GoRoute(
       path: PlayerStatsChartScreen.pathName,
       builder: (context, state) =>
-          PlayerStatsChartScreen(stats: state.extra as PlayerStatsEntity),
+          PlayerStatsChartScreen(stats: state.extra as PlayerStatsEntity?),
     ),
     GoRoute(
       path: '/gamification/:jugadorId',
@@ -140,14 +140,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/health', builder: (context, state) => const HealthScreen()),
     GoRoute(
       path: '/player-injuries/:playerId',
-      builder: (context, state) => PlayerInjuriesScreen(
-        playerId: state.pathParameters['playerId']!,
-      ),
+      builder: (context, state) =>
+          PlayerInjuriesScreen(playerId: state.pathParameters['playerId']!),
     ),
     GoRoute(
       path: '/player-injuries/:playerId/:injuryId',
       builder: (context, state) => InjuryDetailScreen(
-        injury: state.extra as PlayerUnavailabilityEntity,
+        injury: state.extra as PlayerUnavailabilityEntity?,
+        playerId: state.pathParameters['playerId'],
       ),
     ),
   ],
