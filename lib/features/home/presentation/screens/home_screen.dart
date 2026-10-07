@@ -39,7 +39,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
-  String? _lastHandledToast;
+  bool _isConsumingRouteInstruction = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,33 +58,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final requestedTab = routeState.uri.queryParameters['tab'];
     final requestedToast = routeState.uri.queryParameters['toast'];
 
-    if (isCoach &&
-        requestedTab == HomeScreen.tabCommitments &&
-        _currentIndex != 2) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        setState(() => _currentIndex = 2);
-      });
-    }
+    final hasRouteInstruction = requestedTab != null || requestedToast != null;
+    if (hasRouteInstruction && !_isConsumingRouteInstruction) {
+      _isConsumingRouteInstruction = true;
 
-    if (requestedToast != null && requestedToast != _lastHandledToast) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
-        _lastHandledToast = requestedToast;
-        final isSuccess = requestedToast == HomeScreen.toastAcknowledgeSuccess;
+        if (isCoach && requestedTab == HomeScreen.tabCommitments) {
+          setState(() => _currentIndex = 2);
+        }
 
-        AppSnackBar.show(
-          context,
-          isSuccess ? AppSnackBarType.success : AppSnackBarType.error,
-          isSuccess
-              ? 'Convocatoria mantenida correctamente.'
-              : 'No se pudo confirmar la convocatoria.',
-        );
+        if (requestedToast != null) {
+          final isSuccess =
+              requestedToast == HomeScreen.toastAcknowledgeSuccess;
 
-        GoRouter.of(
-          context,
-        ).go(HomeScreen.buildPath(tab: HomeScreen.tabCommitments));
+          AppSnackBar.show(
+            context,
+            isSuccess ? AppSnackBarType.success : AppSnackBarType.error,
+            isSuccess
+                ? 'Convocatoria mantenida correctamente.'
+                : 'No se pudo confirmar la convocatoria.',
+          );
+        }
+
+        // Consumir query params para que tab/toast sean one-shot.
+        GoRouter.of(context).replace(HomeScreen.pathName);
+        _isConsumingRouteInstruction = false;
       });
     }
 

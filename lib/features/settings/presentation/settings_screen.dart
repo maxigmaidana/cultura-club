@@ -66,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.warning,
               title: 'Sanciones',
               onTap: () {
-                // Acción al tocar 'Sanciones'
+                GoRouter.of(context).push('/player-injuries/${user.id}');
               },
             ),
             const SizedBox(height: 24),

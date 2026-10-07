@@ -22,18 +22,18 @@ class AppSettingItem extends ConsumerWidget {
 
     // Derive colors from primaryColor
     final iconBgColor = isDestructive
-        ? primaryColor.withOpacity(0.1)
-        : primaryColor.withOpacity(0.05);
+        ? primaryColor.withValues(alpha: 0.1)
+        : primaryColor.withValues(alpha: 0.05);
     final iconColor = isDestructive ? primaryColor : primaryColor;
     final borderColor = isDestructive
-        ? primaryColor.withOpacity(0.2)
+        ? primaryColor.withValues(alpha: 0.2)
         : Colors.grey[300]!;
     final containerBgColor = isDestructive
-        ? primaryColor.withOpacity(0.05)
+        ? primaryColor.withValues(alpha: 0.05)
         : Colors.grey[50];
     final textColor = isDestructive ? primaryColor : Colors.grey[900];
     final arrowColor = isDestructive
-        ? primaryColor.withOpacity(0.4)
+        ? primaryColor.withValues(alpha: 0.4)
         : Colors.grey[400];
 
     return Container(

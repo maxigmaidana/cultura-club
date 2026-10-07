@@ -12,6 +12,9 @@ import 'package:cultura_club/features/gamification/presentation/screens/active_t
 import 'package:cultura_club/features/gamification/presentation/screens/gamification_screen.dart';
 import 'package:cultura_club/features/health/presentation/healt_screen.dart';
 import 'package:cultura_club/features/home/presentation/screens/home_screen.dart';
+import 'package:cultura_club/features/injuries/domain/entities/player_unavailability_entity.dart';
+import 'package:cultura_club/features/injuries/presentation/screens/injury_detail_screen.dart';
+import 'package:cultura_club/features/injuries/presentation/screens/player_injuries_screen.dart';
 import 'package:cultura_club/features/user/presentation/screens/user_profile_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -135,5 +138,17 @@ final GoRouter appRouter = GoRouter(
           UserProfileScreen(userId: state.pathParameters['userId']!),
     ),
     GoRoute(path: '/health', builder: (context, state) => const HealthScreen()),
+    GoRoute(
+      path: '/player-injuries/:playerId',
+      builder: (context, state) => PlayerInjuriesScreen(
+        playerId: state.pathParameters['playerId']!,
+      ),
+    ),
+    GoRoute(
+      path: '/player-injuries/:playerId/:injuryId',
+      builder: (context, state) => InjuryDetailScreen(
+        injury: state.extra as PlayerUnavailabilityEntity,
+      ),
+    ),
   ],
 );
