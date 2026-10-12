@@ -63,8 +63,8 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
             AppSettingItem(
-              icon: Icons.warning,
-              title: 'Sanciones',
+              icon: Icons.favorite,
+              title: 'Estado físico',
               onTap: () {
                 GoRouter.of(context).push('/player-injuries/${user.id}');
               },

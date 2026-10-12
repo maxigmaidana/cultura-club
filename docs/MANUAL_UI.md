@@ -22,11 +22,14 @@ Regla actual de UI: `isCoach == true` para ENTRENADOR y SUPER_ADMIN.
 /datebook/:categoriaId/activity/:activityId/dashboard ActivityDashboardScreen (COACH)
 
 /coach/category/:categoryId                         CategoryPlayersScreen
-/coach/category/:categoryId/evaluate/:playerId      EvaluationFormScreen
+/coach/category/:categoryId/player/:playerId        CoachPlayerDetailScreen (COACH)
+/coach/category/:categoryId/player/:playerId/sanctions   CoachPlayerSanctionsScreen
 /player/stats-chart/:categoriaId                    PlayerStatsChartScreen
 
 /profile/:userId                                    UserProfileScreen
 /health                                             HealthScreen
+/player-injuries/:playerId                          PlayerInjuriesScreen (Estado físico)
+/player-injuries/:playerId/:injuryId                InjuryDetailScreen
 /gamification/:jugadorId                            GamificationScreen
 /active-trivia/:triviaId/:jugadorId                ActiveTriviaScreen
 ```
@@ -125,49 +128,80 @@ Contenido por rol:
 - Agrupa visualmente por `sector_cancha`.
 - Action en AppBar: ir a agenda de la categoria (`DatebookScreen`).
 - FAB "Agendar": crear actividad para la categoria.
-- Tap en jugador: abre `EvaluationFormScreen`.
+- Tap en jugador: abre `CoachPlayerDetailScreen`.
 
 ---
 
-## 7. Evaluacion de jugadores
+## 7. Detalle de jugador (Coach)
 
-### 7.1 Flujo coach (`EvaluationFormScreen`)
-1. Carga stats actuales del jugador (0-100).
-2. Si no hay registro previo, inicia en 50 por metrica.
-3. Coach ajusta sliders y opcionalmente deja comentarios.
-4. Al guardar:
-   - Calcula deltas (nuevo - original).
-   - Upsert de absolutos en `jugador_categoria_stats`.
-   - Insert de deltas en `evolucion_jugador`.
-5. Feedback:
-   - Exito: SnackBar de confirmacion y vuelve.
-   - Error: SnackBar de error.
+### 7.1 `CoachPlayerDetailScreen`
+- Ficha/menú del jugador con opciones.
+- Header muestra:
+  - Nombre completo
+  - Categoría
+  - Posiciones
+  - Pierna hábil
+  - Altura y peso (si están disponibles)
+- Opciones disponibles (cards/menu):
+  1. **Estado Físico** → Abre `PlayerInjuriesScreen`
+     - Lista lesiones activas (status ACTIVE/RECOVERING) vs historial cerrado (CLOSED)
+     - Disponibilidad del jugador: can_train, can_play
+     - Detalles operativos permitidos: título, descripción, fecha inicio, fecha regreso, body area, severity
+     - Textos neutrales ("Sin lesiones activas", no "No tenés...")
+     - NO muestra datos médicos privados (diagnosis, clinical_notes, etc.)
+  2. **Sanciones** → Abre `CoachPlayerSanctionsScreen`
+     - Placeholder actual (abierto para conectar backend de sanciones deportivas)
+     - Muestra "Sin sanciones registradas"
+     - Separado conceptualmente de lesiones
+  3. **Datos del Jugador** → Info en la ficha
+     - Nombre, categoría, posiciones, pierna hábil, altura, peso, sector
 
-### 7.2 Visualizacion de stats de jugador
-- `PlayerStatsChartScreen` muestra grafico por metrica + promedio general.
-- Se abre desde puntos del flujo donde exista un `PlayerStatsEntity` disponible.
+NO tiene opción "Rendimiento". La evaluación manual ha sido eliminada del flujo del entrenador.
 
 ---
 
-## 8. Configuracion (`SettingsScreen`)
+## 8. Estado Físico (Lesiones)
+
+El módulo de lesiones es ahora el contenedor de "Estado físico" tanto para el entrenador como para el jugador.
+
+**Para Entrenador:**
+- Ruta: `/player-injuries/:playerId` (desde CoachPlayerDetailScreen)
+- AppBar: "Estado físico"
+- Textos neutrales
+- Acceso explícito con playerId de la URL
+
+**Para Jugador (en Settings):**
+- Ruta: `/player-injuries/${user.id}` (desde SettingsScreen)
+- AppBar: "Estado físico"
+- Textos neutrales (funciona para ambos contextos)
+- playerId es el del usuario autenticado
+
+Información visible:
+- ✅ Lesiones activas (ACTIVE, RECOVERING)
+- ✅ Historial de lesiones cerradas (CLOSED)
+- ✅ Detalles: título, descripción, fecha inicio, fecha regreso, body area, body side, severity traducida
+- ✅ Flags operativos: can_train, can_play
+- ✅ Player notes si existen
+- ❌ Datos médicos privados: diagnosis, clinical_notes, treatment_plan, rehabilitation_plan, attachments
+- ❌ Información clínica restringida a DOCTOR
+
+---
+
+## 9. Configuración (`SettingsScreen`)
 
 Secciones visibles:
 - Cuenta:
-  - Perfil -> navega a `/profile/:userId`.
-  - Notificaciones (placeholder sin accion real).
+  - Perfil → navega a `/profile/:userId`.
+  - Notificaciones (placeholder sin acción real).
 
 Secciones solo jugador (`!isCoach`):
 - Rendimiento:
-  - Mi evolucion -> `/health`.
-  - Gamificacion -> `/gamification/:jugadorId`.
-  - Sanciones (placeholder sin accion real).
+  - Mi evolución → `/health`.
+  - Gamificación → `/gamification/:jugadorId`.
+  - Estado físico → `/player-injuries/${user.id}`.
 
-Sesion:
-- Cerrar sesion -> signOut + limpiar sesion + `/login`.
-
----
-
-## 9. Perfil de usuario (`UserProfileScreen`)
+Sesión:
+- Cerrar sesión → signOut + limpiar sesión + `/login`.
 
 - Carga datos por `userId` usando provider remoto.
 - Muestra siempre:

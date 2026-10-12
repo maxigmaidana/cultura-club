@@ -1,11 +1,11 @@
 import 'package:cultura_club/features/coach/presentation/controller/roster_controller.dart';
 import 'package:cultura_club/features/coach/domain/entities/player_profile_entity.dart';
+import 'package:cultura_club/features/coach/presentation/screens/coach_player_detail_screen.dart';
 import 'package:cultura_club/core/enums/player_enums.dart';
 import 'package:cultura_club/core/utils/player_grouping_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../evaluation/presentation/screens/evaluation_form_screen.dart';
 
 class CategoryPlayersScreen extends ConsumerWidget {
   final String categoryId;
@@ -124,16 +124,16 @@ class CategoryPlayersScreen extends ConsumerWidget {
                         ),
                       ),
                       trailing: Icon(
-                        Icons.analytics_outlined,
+                        Icons.chevron_right,
                         color: Colors.red[900],
                       ),
                       onTap: () {
                         GoRouter.of(context).push(
-                          EvaluationFormScreen.buildPath(
+                          CoachPlayerDetailScreen.buildPath(
                             categoryId,
                             player.userId,
                           ),
-                          extra: player.fullName,
+                          extra: player,
                         );
                       },
                     ),

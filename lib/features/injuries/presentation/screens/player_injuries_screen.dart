@@ -6,7 +6,7 @@ import '../providers/injuries_provider.dart';
 import '../widgets/injury_card.dart';
 
 class PlayerInjuriesScreen extends ConsumerWidget {
-  static const pathName = '/player-injuries';
+  static const pathName = '/player-injuries/:playerId';
 
   const PlayerInjuriesScreen({super.key, required this.playerId});
 
@@ -21,7 +21,7 @@ class PlayerInjuriesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sanciones'),
+        title: const Text('Estado físico'),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -59,7 +59,7 @@ class PlayerInjuriesScreen extends ConsumerWidget {
                   const Padding(
                     padding: EdgeInsets.only(bottom: 24),
                     child: Text(
-                      'No tenés lesiones activas.',
+                      'Sin lesiones activas.',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   )

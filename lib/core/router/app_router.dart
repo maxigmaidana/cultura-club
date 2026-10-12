@@ -1,12 +1,13 @@
 import 'package:cultura_club/features/auth/presentation/screens/splash_screen.dart';
 import 'package:cultura_club/features/coach/presentation/screens/category_players_screen.dart';
+import 'package:cultura_club/features/coach/presentation/screens/coach_player_detail_screen.dart';
+import 'package:cultura_club/features/coach/presentation/screens/coach_player_sanctions_screen.dart';
 import 'package:cultura_club/features/datebook/domain/entities/activity_entity.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/activity_dashboard_screen.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/activity_detail_screen.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/create_activity_screen.dart';
 import 'package:cultura_club/features/datebook/presentation/screens/datebook_screen.dart';
 import 'package:cultura_club/features/evaluation/domain/entities/player_stats_entity.dart';
-import 'package:cultura_club/features/evaluation/presentation/screens/evaluation_form_screen.dart';
 import 'package:cultura_club/features/evaluation/presentation/screens/player_stats_chart_screen.dart';
 import 'package:cultura_club/features/gamification/presentation/screens/active_trivia_screen.dart';
 import 'package:cultura_club/features/gamification/presentation/screens/gamification_screen.dart';
@@ -108,11 +109,17 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: EvaluationFormScreen.pathName,
-      builder: (context, state) => EvaluationFormScreen(
-        playerId: state.pathParameters['playerId']!,
+      path: CoachPlayerDetailScreen.pathName,
+      builder: (context, state) => CoachPlayerDetailScreen(
         categoryId: state.pathParameters['categoryId']!,
-        playerName: state.extra as String,
+        playerId: state.pathParameters['playerId']!,
+      ),
+    ),
+    GoRoute(
+      path: CoachPlayerSanctionsScreen.pathName,
+      builder: (context, state) => CoachPlayerSanctionsScreen(
+        categoryId: state.pathParameters['categoryId']!,
+        playerId: state.pathParameters['playerId']!,
       ),
     ),
     GoRoute(
@@ -140,15 +147,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/health', builder: (context, state) => const HealthScreen()),
     GoRoute(
       path: '/player-injuries/:playerId',
-      builder: (context, state) => PlayerInjuriesScreen(
-        playerId: state.pathParameters['playerId']!,
-      ),
+      builder: (context, state) =>
+          PlayerInjuriesScreen(playerId: state.pathParameters['playerId']!),
     ),
     GoRoute(
       path: '/player-injuries/:playerId/:injuryId',
-      builder: (context, state) => InjuryDetailScreen(
-        injury: state.extra as PlayerUnavailabilityEntity,
-      ),
+      builder: (context, state) =>
+          InjuryDetailScreen(injury: state.extra as PlayerUnavailabilityEntity),
     ),
   ],
 );
